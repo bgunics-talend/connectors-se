@@ -15,6 +15,7 @@ package org.talend.components.jdbc.datastore;
 public enum AuthenticationType {
 
     BASIC,
-    KEY_PAIR
+    KEY_PAIR,
+    OAUTH
 
 }

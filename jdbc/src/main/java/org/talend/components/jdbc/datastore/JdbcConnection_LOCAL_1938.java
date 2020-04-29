@@ -20,7 +20,6 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.action.Proposable;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
-import org.talend.sdk.component.api.configuration.action.Updatable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
 import org.talend.sdk.component.api.configuration.constraint.Min;
@@ -42,9 +41,7 @@ import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Ope
 @ToString(exclude = { "password", "privateKey", "privateKeyPassword" })
 @GridLayout({ @GridLayout.Row({ "dbType", "handler" }), @GridLayout.Row("jdbcUrl"), @GridLayout.Row("authenticationType"),
         @GridLayout.Row("userId"), @GridLayout.Row("password"), @GridLayout.Row("privateKey"),
-        @GridLayout.Row("privateKeyPassword"), @GridLayout.Row("oauthTokenEndpoint"), @GridLayout.Row("clientId"),
-        @GridLayout.Row("clientSecret"), @GridLayout.Row("authorizationCode"), @GridLayout.Row("redirectUri"),
-        @GridLayout.Row("refreshToken") })
+        @GridLayout.Row("privateKeyPassword") })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("connectionTimeOut"),
         @GridLayout.Row("connectionValidationTimeOut") })
 @DataStore("JdbcConnection")
@@ -77,12 +74,11 @@ public class JdbcConnection implements Serializable {
 
     @Option
     @Required
-    @ActiveIfs(value = { @ActiveIf(target = "dbType", value = "Snowflake", negate = true),
-            @ActiveIf(target = "authenticationType", value = "OAUTH", negate = true) }, operator = OR)
     @Documentation("database user")
     private String userId;
 
     @Option
+    @Credential
     @ActiveIfs(value = { @ActiveIf(target = "dbType", value = "Snowflake", negate = true),
             @ActiveIf(target = "authenticationType", value = "KEY_PAIR", negate = true) }, operator = OR)
     @Documentation("database password")
@@ -92,6 +88,7 @@ public class JdbcConnection implements Serializable {
     @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"),
             @ActiveIf(target = "authenticationType", value = "KEY_PAIR") })
     @Credential
+    @Documentation("Private key.")
     private String privateKey;
 
     @Option
@@ -100,37 +97,6 @@ public class JdbcConnection implements Serializable {
     @Credential
     @Documentation("Private key password.")
     private String privateKeyPassword;
-
-    @Option
-    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
-    @Documentation("Oauth token endpoint")
-    private String oauthTokenEndpoint;
-
-    @Option
-    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
-    @Documentation("Client ID")
-    private String clientId;
-
-    @Option
-    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
-    @Credential
-    @Documentation("Client secret")
-    private String clientSecret;
-
-    @Option
-    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
-    @Documentation("Authorization code")
-    private String authorizationCode;
-
-    @Option
-    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
-    @Documentation("Redirect URI")
-    private String redirectUri;
-
-    @Option
-    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
-    @Documentation("Refresh token")
-    private String refreshToken;
 
     @Min(0)
     @Option

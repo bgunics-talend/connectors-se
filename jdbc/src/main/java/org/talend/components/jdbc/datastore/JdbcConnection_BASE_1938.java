@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,39 +12,34 @@
  */
 package org.talend.components.jdbc.datastore;
 
-import lombok.Data;
-import lombok.ToString;
+import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_HANDLERS_DB;
+import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_SUPPORTED_DB;
+import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
+
+import java.io.Serializable;
+
 import org.talend.components.jdbc.service.UIActionService;
-import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.action.Proposable;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
-import org.talend.sdk.component.api.configuration.action.Updatable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
 import org.talend.sdk.component.api.configuration.constraint.Min;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataStore;
-import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import java.io.Serializable;
-
-import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_HANDLERS_DB;
-import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_SUPPORTED_DB;
-import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
+import lombok.Data;
+import lombok.ToString;
 
 @Data
-@Version(value = 2, migrationHandler = JdbcConnectionMigrationHandler.class)
 @ToString(exclude = { "password", "privateKey", "privateKeyPassword" })
 @GridLayout({ @GridLayout.Row({ "dbType", "handler" }), @GridLayout.Row("jdbcUrl"), @GridLayout.Row("authenticationType"),
         @GridLayout.Row("userId"), @GridLayout.Row("password"), @GridLayout.Row("privateKey"),
-        @GridLayout.Row("privateKeyPassword"), @GridLayout.Row("oauthTokenEndpoint"), @GridLayout.Row("clientId"),
-        @GridLayout.Row("clientSecret"), @GridLayout.Row("authorizationCode"), @GridLayout.Row("redirectUri"),
-        @GridLayout.Row("refreshToken") })
+        @GridLayout.Row("privateKeyPassword") })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("connectionTimeOut"),
         @GridLayout.Row("connectionValidationTimeOut") })
 @DataStore("JdbcConnection")
@@ -59,7 +54,7 @@ public class JdbcConnection implements Serializable {
     private String dbType;
 
     @Option
-    @ActiveIf(target = "dbType", value = { "Aurora", "SingleStore" })
+    @ActiveIf(target = "dbType", value = "Aurora")
     @Documentation("Database handlers, this configuration is for cloud databases that support the use of other databases drivers")
     @Suggestable(value = ACTION_LIST_HANDLERS_DB, parameters = { "dbType" })
     private String handler;
@@ -70,21 +65,19 @@ public class JdbcConnection implements Serializable {
     private String jdbcUrl;
 
     @Option
-    @DefaultValue("BASIC")
     @ActiveIf(target = "dbType", value = "Snowflake")
-    @Documentation("Authentication type.")
-    private AuthenticationType authenticationType;
+    @Documentation("Authentication type")
+    private AuthenticationType authenticationType = AuthenticationType.BASIC;
 
     @Option
     @Required
-    @ActiveIfs(value = { @ActiveIf(target = "dbType", value = "Snowflake", negate = true),
-            @ActiveIf(target = "authenticationType", value = "OAUTH", negate = true) }, operator = OR)
     @Documentation("database user")
     private String userId;
 
     @Option
     @ActiveIfs(value = { @ActiveIf(target = "dbType", value = "Snowflake", negate = true),
             @ActiveIf(target = "authenticationType", value = "KEY_PAIR", negate = true) }, operator = OR)
+    @Credential
     @Documentation("database password")
     private String password;
 
@@ -92,45 +85,16 @@ public class JdbcConnection implements Serializable {
     @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"),
             @ActiveIf(target = "authenticationType", value = "KEY_PAIR") })
     @Credential
+    // @Required // Cannot be required due to: https://jira.talendforge.org/browse/TCOMP-1682
+    @Documentation("Private key")
     private String privateKey;
 
     @Option
     @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"),
             @ActiveIf(target = "authenticationType", value = "KEY_PAIR") })
     @Credential
-    @Documentation("Private key password.")
+    @Documentation("Private key password")
     private String privateKeyPassword;
-
-    @Option
-    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
-    @Documentation("Oauth token endpoint")
-    private String oauthTokenEndpoint;
-
-    @Option
-    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
-    @Documentation("Client ID")
-    private String clientId;
-
-    @Option
-    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
-    @Credential
-    @Documentation("Client secret")
-    private String clientSecret;
-
-    @Option
-    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
-    @Documentation("Authorization code")
-    private String authorizationCode;
-
-    @Option
-    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
-    @Documentation("Redirect URI")
-    private String redirectUri;
-
-    @Option
-    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
-    @Documentation("Refresh token")
-    private String refreshToken;
 
     @Min(0)
     @Option

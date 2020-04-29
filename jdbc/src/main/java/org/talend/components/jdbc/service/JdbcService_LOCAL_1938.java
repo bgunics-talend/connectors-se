@@ -12,7 +12,6 @@
  */
 package org.talend.components.jdbc.service;
 
-import static java.util.Optional.of;
 import static java.sql.ResultSetMetaData.columnNoNulls;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
@@ -132,17 +131,17 @@ public class JdbcService {
     }
 
     public JdbcDatasource createDataSource(final JdbcConnection connection) {
-        return new JdbcDatasource(tokenClient, i18n, resolver, connection, getDriver(connection), false, false);
+        return new JdbcDatasource(i18n, resolver, connection, getDriver(connection), false, false);
     }
 
     public JdbcDatasource createDataSource(final JdbcConnection connection, final boolean rewriteBatchedStatements) {
-        return new JdbcDatasource(tokenClient, i18n, resolver, connection, getDriver(connection), false,
-                rewriteBatchedStatements);
+        return new JdbcDatasource(i18n, resolver, connection, getDriver(connection), false, rewriteBatchedStatements);
     }
 
     public JdbcDatasource createDataSource(final JdbcConnection connection, boolean isAutoCommit,
             final boolean rewriteBatchedStatements) {
         final JdbcConfiguration.Driver driver = getDriver(connection);
+        return new JdbcDatasource(i18n, resolver, connection, driver, isAutoCommit, rewriteBatchedStatements);
     }
 
     public static class JdbcDatasource implements AutoCloseable {
@@ -179,7 +178,6 @@ public class JdbcService {
                     dataSource.addDataSourceProperty("privateKey", PrivateKeyUtils.getPrivateKey(connection.getPrivateKey(),
                             connection.getPrivateKeyPassword(), i18nMessage));
                 } else {
-                    dataSource.setUsername(connection.getUserId());
                     dataSource.setPassword(connection.getPassword());
                 }
                 dataSource.setDriverClassName(driver.getClassName());
@@ -208,28 +206,6 @@ public class JdbcService {
             } finally {
                 thread.setContextClassLoader(prev);
             }
-        }
-
-        private String getAccessToken(TokenClient tokenClient, JdbcConnection connection) {
-            tokenClient.base(connection.getOauthTokenEndpoint());
-            StringBuilder builder = new StringBuilder();
-            builder.append("client_id=").append(connection.getClientId()).append("&client_secret=")
-                    .append(connection.getClientSecret()).append("&redirect_uri=").append(connection.getRedirectUri());
-
-            if (connection.getRefreshToken() == null) {
-                builder.append("&code=").append(connection.getAuthorizationCode()).append("&grant_type=authorization_code");
-            } else {
-                builder.append("&refresh_token=").append(connection.getRefreshToken()).append("&grant_type=refresh_token");
-            }
-            Response<JsonObject> response = tokenClient.getAccessToken(builder.toString());
-            JsonObject jsonResult = response.body();
-            if (response.status() != 200) {
-                throw new IllegalArgumentException(jsonResult.getString("error_description"));
-            }
-
-            of(jsonResult).filter(json -> json.containsKey("refresh_token")).map(json -> json.getString("refresh_token"))
-                    .ifPresent(connection::setRefreshToken);
-            return jsonResult.getString("access_token");
         }
 
         public Connection getConnection() throws SQLException {

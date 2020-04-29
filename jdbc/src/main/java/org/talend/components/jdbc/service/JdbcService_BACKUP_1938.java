@@ -12,8 +12,11 @@
  */
 package org.talend.components.jdbc.service;
 
-import static java.util.Optional.of;
+<<<<<<< HEAD
 import static java.sql.ResultSetMetaData.columnNoNulls;
+=======
+import static java.util.Optional.of;
+>>>>>>> 91eb4cb4... feat(TDI-44099): snowflake oauth2 implementation main part
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static org.talend.components.jdbc.ErrorFactory.toIllegalStateException;
@@ -43,8 +46,23 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
+<<<<<<< HEAD
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
+=======
+import javax.json.JsonObject;
+
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder;
+import org.bouncycastle.operator.InputDecryptorProvider;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
+import org.bouncycastle.pkcs.PKCSException;
+import org.bouncycastle.util.encoders.Base64;
+import org.bouncycastle.util.encoders.DecoderException;
+>>>>>>> 91eb4cb4... feat(TDI-44099): snowflake oauth2 implementation main part
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
 import org.talend.components.jdbc.datastore.AuthenticationType;
 import org.talend.components.jdbc.datastore.JdbcConnection;
@@ -53,7 +71,11 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.dependency.Resolver;
+<<<<<<< HEAD
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+=======
+import org.talend.sdk.component.api.service.http.Response;
+>>>>>>> 91eb4cb4... feat(TDI-44099): snowflake oauth2 implementation main part
 
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -79,7 +101,11 @@ public class JdbcService {
     private I18nMessage i18n;
 
     @Service
+<<<<<<< HEAD
     private RecordBuilderFactory recordBuilderFactory;
+=======
+    private TokenClient tokenClient;
+>>>>>>> 91eb4cb4... feat(TDI-44099): snowflake oauth2 implementation main part
 
     @Configuration("jdbc")
     private Supplier<JdbcConfiguration> jdbcConfiguration;
@@ -143,6 +169,7 @@ public class JdbcService {
     public JdbcDatasource createDataSource(final JdbcConnection connection, boolean isAutoCommit,
             final boolean rewriteBatchedStatements) {
         final JdbcConfiguration.Driver driver = getDriver(connection);
+        return new JdbcDatasource(tokenClient, i18n, resolver, connection, driver, isAutoCommit, rewriteBatchedStatements);
     }
 
     public static class JdbcDatasource implements AutoCloseable {
@@ -151,10 +178,16 @@ public class JdbcService {
 
         private HikariDataSource dataSource;
 
+<<<<<<< HEAD
         private String driverId;
 
         public JdbcDatasource(final I18nMessage i18nMessage, final Resolver resolver, final JdbcConnection connection,
                 final JdbcConfiguration.Driver driver, final boolean isAutoCommit, final boolean rewriteBatchedStatements) {
+=======
+        public JdbcDatasource(final TokenClient tokenClient, final I18nMessage i18nMessage, final Resolver resolver,
+                final JdbcConnection connection, final JdbcConfiguration.Driver driver, final boolean isAutoCommit,
+                final boolean rewriteBatchedStatements) {
+>>>>>>> 91eb4cb4... feat(TDI-44099): snowflake oauth2 implementation main part
             final Thread thread = Thread.currentThread();
             final ClassLoader prev = thread.getContextClassLoader();
 
@@ -170,6 +203,7 @@ public class JdbcService {
             try {
                 thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
                 dataSource = new HikariDataSource();
+<<<<<<< HEAD
                 if ("MSSQL_JTDS".equals(driver.getId())) {
                     dataSource.setConnectionTestQuery("SELECT 1");
                 }
@@ -178,6 +212,16 @@ public class JdbcService {
                         && AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
                     dataSource.addDataSourceProperty("privateKey", PrivateKeyUtils.getPrivateKey(connection.getPrivateKey(),
                             connection.getPrivateKeyPassword(), i18nMessage));
+=======
+
+                if (AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
+                    dataSource.setUsername(connection.getUserId());
+                    dataSource.addDataSourceProperty("privateKey",
+                            getPrivateKey(connection.getPrivateKey(), connection.getPrivateKeyPassword(), i18nMessage));
+                } else if (AuthenticationType.OAUTH == connection.getAuthenticationType()) {
+                    dataSource.addDataSourceProperty("authenticator", "oauth");
+                    dataSource.addDataSourceProperty("token", getAccessToken(tokenClient, connection));
+>>>>>>> 91eb4cb4... feat(TDI-44099): snowflake oauth2 implementation main part
                 } else {
                     dataSource.setUsername(connection.getUserId());
                     dataSource.setPassword(connection.getPassword());
@@ -210,6 +254,46 @@ public class JdbcService {
             }
         }
 
+<<<<<<< HEAD
+=======
+        private PrivateKey getPrivateKey(String privateKey, String privateKeyPassword, final I18nMessage i18nMessage) {
+            try {
+                return privateKey.contains("ENCRYPTED") ? getFromEncrypted(privateKey, privateKeyPassword)
+                        : getFromRegular(privateKey);
+            } catch (PKCSException pkcse) {
+                throw new IllegalArgumentException(i18nMessage.errorPrivateKeyPasswordIncorrect(), pkcse);
+            } catch (InvalidKeySpecException | IOException | OperatorCreationException | NoSuchAlgorithmException
+                    | DecoderException e) {
+                throw new IllegalArgumentException(i18nMessage.errorPrivateKeyIncorrect(), e);
+            }
+        }
+
+        private PrivateKey getFromEncrypted(String privateKey, String privateKeyPassword)
+                throws IOException, OperatorCreationException, PKCSException {
+            PKCS8EncryptedPrivateKeyInfo pkcs8EncryptedPrivateKeyInfo = new PKCS8EncryptedPrivateKeyInfo(
+                    decodeString(replaceGeneratedExtraString(privateKey, true)));
+            InputDecryptorProvider inputDecryptorProvider = new JceOpenSSLPKCS8DecryptorProviderBuilder().setProvider("BC")
+                    .build(ofNullable(privateKeyPassword).map(String::toCharArray).orElse(new char[0]));
+            PrivateKeyInfo privateKeyInfo = pkcs8EncryptedPrivateKeyInfo.decryptPrivateKeyInfo(inputDecryptorProvider);
+            return new JcaPEMKeyConverter().setProvider("BC").getPrivateKey(privateKeyInfo);
+        }
+
+        private PrivateKey getFromRegular(String privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodeString(replaceGeneratedExtraString(privateKey, false)));
+            return KeyFactory.getInstance("RSA").generatePrivate(keySpec);
+        }
+
+        private byte[] decodeString(String privateKeyContent) {
+            return Base64.decode(privateKeyContent);
+        }
+
+        private String replaceGeneratedExtraString(String privateKey, boolean isEncrypted) {
+            return isEncrypted
+                    ? privateKey.replace("-----BEGIN ENCRYPTED PRIVATE KEY-----", "")
+                            .replace("-----END ENCRYPTED PRIVATE KEY-----", "")
+                    : privateKey.replace("-----BEGIN RSA PRIVATE KEY-----", "").replace("-----END RSA PRIVATE KEY-----", "");
+        }
+
         private String getAccessToken(TokenClient tokenClient, JdbcConnection connection) {
             tokenClient.base(connection.getOauthTokenEndpoint());
             StringBuilder builder = new StringBuilder();
@@ -232,6 +316,7 @@ public class JdbcService {
             return jsonResult.getString("access_token");
         }
 
+>>>>>>> 91eb4cb4... feat(TDI-44099): snowflake oauth2 implementation main part
         public Connection getConnection() throws SQLException {
             final Thread thread = Thread.currentThread();
             final ClassLoader prev = thread.getContextClassLoader();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2021 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,38 +13,39 @@
 package org.talend.components.jdbc.service;
 
 import static java.util.Optional.of;
-import static java.sql.ResultSetMetaData.columnNoNulls;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
-import static org.talend.components.jdbc.ErrorFactory.toIllegalStateException;
-import static org.talend.sdk.component.api.record.Schema.Type.BOOLEAN;
-import static org.talend.sdk.component.api.record.Schema.Type.BYTES;
-import static org.talend.sdk.component.api.record.Schema.Type.DATETIME;
-import static org.talend.sdk.component.api.record.Schema.Type.DOUBLE;
-import static org.talend.sdk.component.api.record.Schema.Type.FLOAT;
-import static org.talend.sdk.component.api.record.Schema.Type.INT;
-import static org.talend.sdk.component.api.record.Schema.Type.LONG;
-import static org.talend.sdk.component.api.record.Schema.Type.STRING;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.net.URL;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.Security;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Types;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
+import javax.json.JsonObject;
+
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8DecryptorProviderBuilder;
+import org.bouncycastle.operator.InputDecryptorProvider;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
+import org.bouncycastle.pkcs.PKCSException;
+import org.bouncycastle.util.encoders.Base64;
+import org.bouncycastle.util.encoders.DecoderException;
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
 import org.talend.components.jdbc.datastore.AuthenticationType;
 import org.talend.components.jdbc.datastore.JdbcConnection;
@@ -53,7 +54,7 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.dependency.Resolver;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+import org.talend.sdk.component.api.service.http.Response;
 
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -64,13 +65,9 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class JdbcService {
 
-    private static final String SNOWFLAKE_DATABASE_NAME = "Snowflake";
-
     private static Pattern READ_ONLY_QUERY_PATTERN = Pattern.compile(
             "^SELECT\\s+((?!((\\bINTO\\b)|(\\bFOR\\s+UPDATE\\b)|(\\bLOCK\\s+IN\\s+SHARE\\s+MODE\\b))).)+$",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL | Pattern.MULTILINE);
-
-    private final Map<JdbcConfiguration.Driver, URL[]> drivers = new HashMap<>();
 
     @Service
     private Resolver resolver;
@@ -79,13 +76,18 @@ public class JdbcService {
     private I18nMessage i18n;
 
     @Service
-    private RecordBuilderFactory recordBuilderFactory;
+    private TokenClient tokenClient;
 
     @Configuration("jdbc")
     private Supplier<JdbcConfiguration> jdbcConfiguration;
 
     @Service
     private LocalConfiguration localConfiguration;
+
+    static {
+        // Define Bouncy Castle Provider for Snowflake Key Pair authentication
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
     public boolean driverNotDisabled(JdbcConfiguration.Driver driver) {
         return !ofNullable(localConfiguration.get("jdbc.driver." + driver.getId().toLowerCase(Locale.ROOT) + ".skip"))
@@ -112,7 +114,7 @@ public class JdbcService {
     public static boolean checkTableExistence(final String tableName, final JdbcService.JdbcDatasource dataSource)
             throws SQLException {
         try (final Connection connection = dataSource.getConnection()) {
-            try (final ResultSet resultSet = connection.getMetaData().getTables(connection.getCatalog(), getSchema(connection),
+            try (final ResultSet resultSet = connection.getMetaData().getTables(connection.getCatalog(), connection.getSchema(),
                     tableName, new String[] { "TABLE", "SYNONYM" })) {
                 while (resultSet.next()) {
                     if (ofNullable(ofNullable(resultSet.getString("TABLE_NAME")).orElseGet(() -> {
@@ -121,8 +123,7 @@ public class JdbcService {
                         } catch (final SQLException e) {
                             return null;
                         }
-                    })).filter(tn -> ("DeltaLake".equalsIgnoreCase(dataSource.driverId) ? tableName.equalsIgnoreCase(tn)
-                            : tableName.equals(tn))).isPresent()) {
+                    })).filter(tableName::equals).isPresent()) {
                         return true;
                     }
                 }
@@ -143,6 +144,7 @@ public class JdbcService {
     public JdbcDatasource createDataSource(final JdbcConnection connection, boolean isAutoCommit,
             final boolean rewriteBatchedStatements) {
         final JdbcConfiguration.Driver driver = getDriver(connection);
+        return new JdbcDatasource(tokenClient, i18n, resolver, connection, driver, isAutoCommit, rewriteBatchedStatements);
     }
 
     public static class JdbcDatasource implements AutoCloseable {
@@ -151,10 +153,9 @@ public class JdbcService {
 
         private HikariDataSource dataSource;
 
-        private String driverId;
-
-        public JdbcDatasource(final I18nMessage i18nMessage, final Resolver resolver, final JdbcConnection connection,
-                final JdbcConfiguration.Driver driver, final boolean isAutoCommit, final boolean rewriteBatchedStatements) {
+        public JdbcDatasource(final TokenClient tokenClient, final I18nMessage i18nMessage, final Resolver resolver,
+                final JdbcConnection connection, final JdbcConfiguration.Driver driver, final boolean isAutoCommit,
+                final boolean rewriteBatchedStatements) {
             final Thread thread = Thread.currentThread();
             final ClassLoader prev = thread.getContextClassLoader();
 
@@ -165,30 +166,24 @@ public class JdbcService {
                 throw new IllegalStateException(i18nMessage.errorDriverLoad(driver.getId(), missingJars));
             }
 
-            driverId = driver.getId();
-
             try {
                 thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
                 dataSource = new HikariDataSource();
-                if ("MSSQL_JTDS".equals(driver.getId())) {
-                    dataSource.setConnectionTestQuery("SELECT 1");
-                }
-                dataSource.setUsername(connection.getUserId());
-                if (SNOWFLAKE_DATABASE_NAME.equals(connection.getDbType())
-                        && AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
-                    dataSource.addDataSourceProperty("privateKey", PrivateKeyUtils.getPrivateKey(connection.getPrivateKey(),
-                            connection.getPrivateKeyPassword(), i18nMessage));
+
+                if (AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
+                    dataSource.setUsername(connection.getUserId());
+                    dataSource.addDataSourceProperty("privateKey",
+                            getPrivateKey(connection.getPrivateKey(), connection.getPrivateKeyPassword(), i18nMessage));
+                } else if (AuthenticationType.OAUTH == connection.getAuthenticationType()) {
+                    dataSource.addDataSourceProperty("authenticator", "oauth");
+                    dataSource.addDataSourceProperty("token", getAccessToken(tokenClient, connection));
                 } else {
                     dataSource.setUsername(connection.getUserId());
                     dataSource.setPassword(connection.getPassword());
                 }
                 dataSource.setDriverClassName(driver.getClassName());
                 dataSource.setJdbcUrl(connection.getJdbcUrl());
-                if ("DeltaLake".equalsIgnoreCase(driver.getId())) {
-                    // do nothing, DeltaLake default don't allow set auto commit to false
-                } else {
-                    dataSource.setAutoCommit(isAutoCommit);
-                }
+                dataSource.setAutoCommit(isAutoCommit);
                 dataSource.setMaximumPoolSize(1);
                 dataSource.setConnectionTimeout(connection.getConnectionTimeOut() * 1000);
                 dataSource.setValidationTimeout(connection.getConnectionValidationTimeOut() * 1000);
@@ -203,11 +198,47 @@ public class JdbcService {
                 dataSource.addDataSourceProperty("allowLoadLocalInfile", "false"); // MySQL
                 dataSource.addDataSourceProperty("allowLocalInfile", "false"); // MariaDB
 
-                driver.getFixedParameters().stream().forEach(kv -> dataSource.addDataSourceProperty(kv.getKey(), kv.getValue()));
-
             } finally {
                 thread.setContextClassLoader(prev);
             }
+        }
+
+        private PrivateKey getPrivateKey(String privateKey, String privateKeyPassword, final I18nMessage i18nMessage) {
+            try {
+                return privateKey.contains("ENCRYPTED") ? getFromEncrypted(privateKey, privateKeyPassword)
+                        : getFromRegular(privateKey);
+            } catch (PKCSException pkcse) {
+                throw new IllegalArgumentException(i18nMessage.errorPrivateKeyPasswordIncorrect(), pkcse);
+            } catch (InvalidKeySpecException | IOException | OperatorCreationException | NoSuchAlgorithmException
+                    | DecoderException e) {
+                throw new IllegalArgumentException(i18nMessage.errorPrivateKeyIncorrect(), e);
+            }
+        }
+
+        private PrivateKey getFromEncrypted(String privateKey, String privateKeyPassword)
+                throws IOException, OperatorCreationException, PKCSException {
+            PKCS8EncryptedPrivateKeyInfo pkcs8EncryptedPrivateKeyInfo = new PKCS8EncryptedPrivateKeyInfo(
+                    decodeString(replaceGeneratedExtraString(privateKey, true)));
+            InputDecryptorProvider inputDecryptorProvider = new JceOpenSSLPKCS8DecryptorProviderBuilder().setProvider("BC")
+                    .build(ofNullable(privateKeyPassword).map(String::toCharArray).orElse(new char[0]));
+            PrivateKeyInfo privateKeyInfo = pkcs8EncryptedPrivateKeyInfo.decryptPrivateKeyInfo(inputDecryptorProvider);
+            return new JcaPEMKeyConverter().setProvider("BC").getPrivateKey(privateKeyInfo);
+        }
+
+        private PrivateKey getFromRegular(String privateKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decodeString(replaceGeneratedExtraString(privateKey, false)));
+            return KeyFactory.getInstance("RSA").generatePrivate(keySpec);
+        }
+
+        private byte[] decodeString(String privateKeyContent) {
+            return Base64.decode(privateKeyContent);
+        }
+
+        private String replaceGeneratedExtraString(String privateKey, boolean isEncrypted) {
+            return isEncrypted
+                    ? privateKey.replace("-----BEGIN ENCRYPTED PRIVATE KEY-----", "")
+                            .replace("-----END ENCRYPTED PRIVATE KEY-----", "")
+                    : privateKey.replace("-----BEGIN RSA PRIVATE KEY-----", "").replace("-----END RSA PRIVATE KEY-----", "");
         }
 
         private String getAccessToken(TokenClient tokenClient, JdbcConnection connection) {
@@ -289,146 +320,6 @@ public class JdbcService {
                     thread.setContextClassLoader(prev);
                 }
             }
-        }
-    }
-
-    public static String getSchema(Connection connection) throws SQLException {
-        // Special code for MSSQL JDTS driver
-        String schema = null;
-        try {
-            String result = connection.getSchema();
-            // delta lake database driver return empty string which not follow jdbc spec.
-            if (result != null && !"".equals(result)) {
-                schema = result;
-            }
-        } catch (AbstractMethodError e) {
-            // ignore
-        }
-        return schema;
-    }
-
-    public void addField(final Schema.Builder builder, final ResultSetMetaData metaData, final int columnIndex) {
-        try {
-            final String javaType = metaData.getColumnClassName(columnIndex);
-            final int sqlType = metaData.getColumnType(columnIndex);
-            final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
-            entryBuilder.withName(metaData.getColumnName(columnIndex))
-                    .withNullable(metaData.isNullable(columnIndex) != columnNoNulls);
-            switch (sqlType) {
-            case java.sql.Types.SMALLINT:
-            case java.sql.Types.TINYINT:
-            case java.sql.Types.INTEGER:
-                if (javaType.equals(Integer.class.getName()) || Short.class.getName().equals(javaType)) {
-                    builder.withEntry(entryBuilder.withType(INT).build());
-                } else {
-                    builder.withEntry(entryBuilder.withType(LONG).build());
-                }
-                break;
-            case java.sql.Types.FLOAT:
-            case java.sql.Types.REAL:
-                builder.withEntry(entryBuilder.withType(FLOAT).build());
-                break;
-            case java.sql.Types.DOUBLE:
-                builder.withEntry(entryBuilder.withType(DOUBLE).build());
-                break;
-            case java.sql.Types.BOOLEAN:
-                builder.withEntry(entryBuilder.withType(BOOLEAN).build());
-                break;
-            case java.sql.Types.TIME:
-            case java.sql.Types.DATE:
-            case java.sql.Types.TIMESTAMP:
-                builder.withEntry(entryBuilder.withType(DATETIME).build());
-                break;
-            case java.sql.Types.BINARY:
-            case java.sql.Types.VARBINARY:
-            case Types.LONGVARBINARY:
-                builder.withEntry(entryBuilder.withType(BYTES).build());
-                break;
-            case java.sql.Types.BIGINT:
-            case java.sql.Types.DECIMAL:
-            case java.sql.Types.NUMERIC:
-            case java.sql.Types.VARCHAR:
-            case java.sql.Types.LONGVARCHAR:
-            case java.sql.Types.CHAR:
-            default:
-                builder.withEntry(entryBuilder.withType(STRING).build());
-                break;
-            }
-
-            log.warn("[addField] {} {} {}.", metaData.getColumnName(columnIndex), javaType, sqlType);
-
-        } catch (final SQLException e) {
-            throw toIllegalStateException(e);
-        }
-    }
-
-    public void addColumn(final Record.Builder builder, final ResultSetMetaData metaData, final int columnIndex,
-            final ResultSet resultSet) {
-        try {
-            final int sqlType = metaData.getColumnType(columnIndex);
-            final Schema.Entry.Builder entryBuilder = recordBuilderFactory.newEntryBuilder();
-            final Object value = resultSet.getObject(columnIndex);
-            entryBuilder.withName(metaData.getColumnName(columnIndex))
-                    .withNullable(metaData.isNullable(columnIndex) != columnNoNulls);
-            switch (sqlType) {
-            case java.sql.Types.SMALLINT:
-            case java.sql.Types.TINYINT:
-            case java.sql.Types.INTEGER:
-                if (value != null) {
-                    if (value instanceof Integer) {
-                        builder.withInt(entryBuilder.withType(INT).build(), (Integer) value);
-                    } else if (value instanceof Short) {
-                        builder.withInt(entryBuilder.withType(INT).build(), ((Short) value).intValue());
-                    } else {
-                        builder.withLong(entryBuilder.withType(LONG).build(), Long.valueOf(value.toString()));
-                    }
-                }
-                break;
-            case java.sql.Types.FLOAT:
-            case java.sql.Types.REAL:
-                if (value != null) {
-                    builder.withFloat(entryBuilder.withType(FLOAT).build(), (Float) value);
-                }
-                break;
-            case java.sql.Types.DOUBLE:
-                if (value != null) {
-                    builder.withDouble(entryBuilder.withType(DOUBLE).build(), (Double) value);
-                }
-                break;
-            case java.sql.Types.BOOLEAN:
-                if (value != null) {
-                    builder.withBoolean(entryBuilder.withType(BOOLEAN).build(), (Boolean) value);
-                }
-                break;
-            case java.sql.Types.DATE:
-                builder.withDateTime(entryBuilder.withType(DATETIME).build(),
-                        value == null ? null : new Date(((java.sql.Date) value).getTime()));
-                break;
-            case java.sql.Types.TIME:
-                builder.withDateTime(entryBuilder.withType(DATETIME).build(),
-                        value == null ? null : new Date(((java.sql.Time) value).getTime()));
-                break;
-            case java.sql.Types.TIMESTAMP:
-                builder.withDateTime(entryBuilder.withType(DATETIME).build(),
-                        value == null ? null : new Date(((java.sql.Timestamp) value).getTime()));
-                break;
-            case java.sql.Types.BINARY:
-            case java.sql.Types.VARBINARY:
-            case Types.LONGVARBINARY:
-                builder.withBytes(entryBuilder.withType(BYTES).build(), value == null ? null : (byte[]) value);
-                break;
-            case java.sql.Types.BIGINT:
-            case java.sql.Types.DECIMAL:
-            case java.sql.Types.NUMERIC:
-            case java.sql.Types.VARCHAR:
-            case java.sql.Types.LONGVARCHAR:
-            case java.sql.Types.CHAR:
-            default:
-                builder.withString(entryBuilder.withType(STRING).build(), value == null ? null : String.valueOf(value));
-                break;
-            }
-        } catch (final SQLException e) {
-            throw toIllegalStateException(e);
         }
     }
 

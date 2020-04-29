@@ -83,8 +83,14 @@ public class JdbcConnection implements Serializable {
     private String userId;
 
     @Option
+    @Credential
     @ActiveIfs(value = { @ActiveIf(target = "dbType", value = "Snowflake", negate = true),
+<<<<<<< HEAD
             @ActiveIf(target = "authenticationType", value = "KEY_PAIR", negate = true) }, operator = OR)
+=======
+            @ActiveIf(target = "authenticationType", value = "BASIC") }, operator = OR)
+    @Credential
+>>>>>>> 91eb4cb4... feat(TDI-44099): snowflake oauth2 implementation main part
     @Documentation("database password")
     private String password;
 
@@ -92,6 +98,7 @@ public class JdbcConnection implements Serializable {
     @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"),
             @ActiveIf(target = "authenticationType", value = "KEY_PAIR") })
     @Credential
+    @Documentation("Private key.")
     private String privateKey;
 
     @Option
