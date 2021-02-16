@@ -16,7 +16,7 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.azure.BaseIT;
@@ -78,8 +78,9 @@ public class Excel2007OutputIT extends BaseIT {
 
         CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
 
-        Assert.assertTrue("No files were created in test container",
-                container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext());
+        Assertions.assertTrue(
+                container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext(),
+                "No files were created in test container");
 
         BlobInputProperties inputProperties = new BlobInputProperties();
         inputProperties.setDataset(blobOutputProperties.getDataset());
@@ -89,9 +90,9 @@ public class Excel2007OutputIT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals(recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size());
         Record firstRecord = records.get(0);
-        Assert.assertEquals("abc0", firstRecord.getString("field0"));
+        Assertions.assertEquals("abc0", firstRecord.getString("field0"));
     }
 
     @Test
@@ -111,8 +112,9 @@ public class Excel2007OutputIT extends BaseIT {
 
         CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
 
-        Assert.assertTrue("No files were created in test container",
-                container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext());
+        Assertions.assertTrue(
+                container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext(),
+                "No files were created in test container");
 
         BlobInputProperties inputProperties = new BlobInputProperties();
         inputProperties.setDataset(blobOutputProperties.getDataset());
@@ -122,7 +124,7 @@ public class Excel2007OutputIT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals(recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size());
     }
 
     @Test
@@ -140,8 +142,9 @@ public class Excel2007OutputIT extends BaseIT {
 
         CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
 
-        Assert.assertTrue("No files were created in test container",
-                container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext());
+        Assertions.assertTrue(
+                container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext(),
+                "No files were created in test container");
 
         BlobInputProperties inputProperties = new BlobInputProperties();
         inputProperties.setDataset(blobOutputProperties.getDataset());
@@ -151,12 +154,12 @@ public class Excel2007OutputIT extends BaseIT {
                 .connections().from("azureInput").to("collector").build().run();
         List<Record> records = componentsHandler.getCollectedData(Record.class);
 
-        Assert.assertEquals(recordSize, records.size());
+        Assertions.assertEquals(recordSize, records.size());
         Record firstRecord = records.get(0);
 
-        Assert.assertEquals(1, firstRecord.getDouble("field0"), 0.01d);
-        Assert.assertEquals(2.0, firstRecord.getDouble("field1"), 0.01d);
-        Assert.assertTrue(firstRecord.getBoolean("field2"));
+        Assertions.assertEquals(1, firstRecord.getDouble("field0"), 0.01d);
+        Assertions.assertEquals(2.0, firstRecord.getDouble("field1"), 0.01d);
+        Assertions.assertTrue(firstRecord.getBoolean("field2"));
     }
 
     @Test
@@ -173,8 +176,9 @@ public class Excel2007OutputIT extends BaseIT {
 
         CloudBlobContainer container = storageAccount.createCloudBlobClient().getContainerReference(containerName);
 
-        Assert.assertTrue("No files were created in test container",
-                container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext());
+        Assertions.assertTrue(
+                container.listBlobs(blobOutputProperties.getDataset().getDirectory() + "/", false).iterator().hasNext(),
+                "No files were created in test container");
     }
 
 }
