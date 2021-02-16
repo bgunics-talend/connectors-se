@@ -16,10 +16,12 @@ import java.io.Serializable;
 
 import org.talend.components.adlsgen2.common.format.FileFormat;
 import org.talend.components.adlsgen2.datastore.AdlsGen2Connection;
+import org.talend.components.adlsgen2.migration.AdlsDataSetMigrationHandler;
 import org.talend.components.common.formats.AvroFormatOptions;
 import org.talend.components.common.formats.JSONFormatOptions;
 import org.talend.components.common.formats.ParquetFormatOptions;
 import org.talend.components.common.formats.csv.CSVFormatOptionsWithSchema;
+import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -45,6 +47,7 @@ import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.Fo
         @GridLayout.Row("parquetConfiguration"), //
         @GridLayout.Row("jsonConfiguration"), //
 })
+@Version(value = 2, migrationHandler = AdlsDataSetMigrationHandler.class)
 @GridLayout(names = ADVANCED, value = { @GridLayout.Row({ "connection" }) })
 @Documentation("ADLS DataSet")
 public class AdlsGen2DataSet implements Serializable {
