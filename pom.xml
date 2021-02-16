@@ -33,6 +33,7 @@
     </licenses>
 
     <modules>
+        <module>connectors-common</module>
         <module>azure</module>
         <module>jdbc</module>
         <module>salesforce</module>
