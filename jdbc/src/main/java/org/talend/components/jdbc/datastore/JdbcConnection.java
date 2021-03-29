@@ -58,6 +58,7 @@ public class JdbcConnection implements Serializable {
     @Proposable(ACTION_LIST_SUPPORTED_DB)
     private String dbType;
 
+    
     @Option
     @ActiveIf(target = "dbType", value = { "Aurora", "SingleStore" })
     @Documentation("Database handlers, this configuration is for cloud databases that support the use of other databases drivers")
