@@ -58,7 +58,6 @@ public class JdbcConnection implements Serializable {
     @Proposable(ACTION_LIST_SUPPORTED_DB)
     private String dbType;
 
-
     @Option
     @ActiveIf(target = "dbType", value = { "Aurora", "SingleStore" })
     @Documentation("Database handlers, this configuration is for cloud databases that support the use of other databases drivers")
@@ -93,6 +92,7 @@ public class JdbcConnection implements Serializable {
     @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"),
             @ActiveIf(target = "authenticationType", value = "KEY_PAIR") })
     @Credential
+    @Documentation("Private key")
     private String privateKey;
 
     @Option

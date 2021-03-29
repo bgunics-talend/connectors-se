@@ -62,7 +62,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import javax.json.JsonObject;
 
-@Slf4j @Service public class JdbcService {
+@Slf4j
+@Service
+public class JdbcService {
 
     private static final String SNOWFLAKE_DATABASE_NAME = "Snowflake";
 
@@ -72,22 +74,27 @@ import javax.json.JsonObject;
 
     private final Map<JdbcConfiguration.Driver, URL[]> drivers = new HashMap<>();
 
-    @Service private Resolver resolver;
+    @Service
+    private Resolver resolver;
 
-    @Service private I18nMessage i18n;
+    @Service
+    private I18nMessage i18n;
 
-    @Service private TokenClient tokenClient;
+    @Service
+    private TokenClient tokenClient;
 
-    @Service private RecordBuilderFactory recordBuilderFactory;
+    @Service
+    private RecordBuilderFactory recordBuilderFactory;
 
-    @Configuration("jdbc") private Supplier<JdbcConfiguration> jdbcConfiguration;
+    @Configuration("jdbc")
+    private Supplier<JdbcConfiguration> jdbcConfiguration;
 
-    @Service private LocalConfiguration localConfiguration;
+    @Service
+    private LocalConfiguration localConfiguration;
 
     public boolean driverNotDisabled(JdbcConfiguration.Driver driver) {
-        return !ofNullable(
-                localConfiguration.get("jdbc.driver." + driver.getId().toLowerCase(Locale.ROOT) + ".skip")).map(
-                Boolean::valueOf).orElse(false);
+        return !ofNullable(localConfiguration.get("jdbc.driver." + driver.getId().toLowerCase(Locale.ROOT) + ".skip"))
+                .map(Boolean::valueOf).orElse(false);
     }
 
     /**
@@ -99,24 +106,18 @@ import javax.json.JsonObject;
     }
 
     private JdbcConfiguration.Driver getDriver(final JdbcConnection dataStore) {
-        return jdbcConfiguration.get()
-                .getDrivers()
-                .stream()
-                .filter(this::driverNotDisabled)
+        return jdbcConfiguration.get().getDrivers().stream().filter(this::driverNotDisabled)
                 .filter(d -> d.getId()
-                        .equals(ofNullable(dataStore.getHandler()).filter(h -> !h.isEmpty())
-                                .orElse(dataStore.getDbType())))
-                .filter(d -> d.getHandlers() == null || d.getHandlers().isEmpty())
-                .findFirst()
+                        .equals(ofNullable(dataStore.getHandler()).filter(h -> !h.isEmpty()).orElse(dataStore.getDbType())))
+                .filter(d -> d.getHandlers() == null || d.getHandlers().isEmpty()).findFirst()
                 .orElseThrow(() -> new IllegalStateException(i18n.errorDriverNotFound(dataStore.getDbType())));
     }
 
     public static boolean checkTableExistence(final String tableName, final JdbcService.JdbcDatasource dataSource)
             throws SQLException {
         try (final Connection connection = dataSource.getConnection()) {
-            try (final ResultSet resultSet = connection.getMetaData()
-                    .getTables(connection.getCatalog(), getSchema(connection), tableName,
-                            new String[] { "TABLE", "SYNONYM" })) {
+            try (final ResultSet resultSet = connection.getMetaData().getTables(connection.getCatalog(), getSchema(connection),
+                    tableName, new String[] { "TABLE", "SYNONYM" })) {
                 while (resultSet.next()) {
                     if (ofNullable(ofNullable(resultSet.getString("TABLE_NAME")).orElseGet(() -> {
                         try {
@@ -124,9 +125,8 @@ import javax.json.JsonObject;
                         } catch (final SQLException e) {
                             return null;
                         }
-                    })).filter(tn -> ("DeltaLake".equalsIgnoreCase(dataSource.driverId) ?
-                            tableName.equalsIgnoreCase(tn) :
-                            tableName.equals(tn))).isPresent()) {
+                    })).filter(tn -> ("DeltaLake".equalsIgnoreCase(dataSource.driverId) ? tableName.equalsIgnoreCase(tn)
+                            : tableName.equals(tn))).isPresent()) {
                         return true;
                     }
                 }
@@ -147,8 +147,7 @@ import javax.json.JsonObject;
     public JdbcDatasource createDataSource(final JdbcConnection connection, boolean isAutoCommit,
             final boolean rewriteBatchedStatements) {
         final JdbcConfiguration.Driver driver = getDriver(connection);
-        return new JdbcDatasource(tokenClient, i18n, resolver, connection, driver, isAutoCommit,
-                rewriteBatchedStatements);
+        return new JdbcDatasource(tokenClient, i18n, resolver, connection, driver, isAutoCommit, rewriteBatchedStatements);
     }
 
     public static class JdbcDatasource implements AutoCloseable {
@@ -166,9 +165,7 @@ import javax.json.JsonObject;
             final ClassLoader prev = thread.getContextClassLoader();
 
             classLoaderDescriptor = resolver.mapDescriptorToClassLoader(driver.getPaths());
-            String missingJars = driver.getPaths()
-                    .stream()
-                    .filter(p -> classLoaderDescriptor.resolvedDependencies().contains(p))
+            String missingJars = driver.getPaths().stream().filter(p -> classLoaderDescriptor.resolvedDependencies().contains(p))
                     .collect(joining("\n"));
             if (!classLoaderDescriptor.resolvedDependencies().containsAll(driver.getPaths())) {
                 throw new IllegalStateException(i18nMessage.errorDriverLoad(driver.getId(), missingJars));
@@ -188,9 +185,8 @@ import javax.json.JsonObject;
 
                     if (AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
                         dataSource.setUsername(connection.getUserId());
-                        dataSource.addDataSourceProperty("privateKey",
-                                PrivateKeyUtils.getPrivateKey(connection.getPrivateKey(),
-                                        connection.getPrivateKeyPassword(), i18nMessage));
+                        dataSource.addDataSourceProperty("privateKey", PrivateKeyUtils.getPrivateKey(connection.getPrivateKey(),
+                                connection.getPrivateKeyPassword(), i18nMessage));
                     } else if (AuthenticationType.OAUTH == connection.getAuthenticationType()) {
                         dataSource.addDataSourceProperty("authenticator", "oauth");
                         dataSource.addDataSourceProperty("token", getAccessToken(tokenClient, connection));
@@ -223,9 +219,7 @@ import javax.json.JsonObject;
                 dataSource.addDataSourceProperty("allowLoadLocalInfile", "false"); // MySQL
                 dataSource.addDataSourceProperty("allowLocalInfile", "false"); // MariaDB
 
-                driver.getFixedParameters()
-                        .stream()
-                        .forEach(kv -> dataSource.addDataSourceProperty(kv.getKey(), kv.getValue()));
+                driver.getFixedParameters().stream().forEach(kv -> dataSource.addDataSourceProperty(kv.getKey(), kv.getValue()));
 
             } finally {
                 thread.setContextClassLoader(prev);
@@ -235,21 +229,13 @@ import javax.json.JsonObject;
         private String getAccessToken(TokenClient tokenClient, JdbcConnection connection) {
             tokenClient.base(connection.getOauthTokenEndpoint());
             StringBuilder builder = new StringBuilder();
-            builder.append("client_id=")
-                    .append(connection.getClientId())
-                    .append("&client_secret=")
-                    .append(connection.getClientSecret())
-                    .append("&redirect_uri=")
-                    .append(connection.getRedirectUri());
+            builder.append("client_id=").append(connection.getClientId()).append("&client_secret=")
+                    .append(connection.getClientSecret()).append("&redirect_uri=").append(connection.getRedirectUri());
 
             if (connection.getRefreshToken() == null) {
-                builder.append("&code=")
-                        .append(connection.getAuthorizationCode())
-                        .append("&grant_type=authorization_code");
+                builder.append("&code=").append(connection.getAuthorizationCode()).append("&grant_type=authorization_code");
             } else {
-                builder.append("&refresh_token=")
-                        .append(connection.getRefreshToken())
-                        .append("&grant_type=refresh_token");
+                builder.append("&refresh_token=").append(connection.getRefreshToken()).append("&grant_type=refresh_token");
             }
             Response<JsonObject> response = tokenClient.getAccessToken(builder.toString());
             JsonObject jsonResult = response.body();
@@ -257,8 +243,7 @@ import javax.json.JsonObject;
                 throw new IllegalArgumentException(jsonResult.getString("error_description"));
             }
 
-            of(jsonResult).filter(json -> json.containsKey("refresh_token"))
-                    .map(json -> json.getString("refresh_token"))
+            of(jsonResult).filter(json -> json.containsKey("refresh_token")).map(json -> json.getString("refresh_token"))
                     .ifPresent(connection::setRefreshToken);
             return jsonResult.getString("access_token");
         }
@@ -274,7 +259,8 @@ import javax.json.JsonObject;
             }
         }
 
-        @Override public void close() {
+        @Override
+        public void close() {
             final Thread thread = Thread.currentThread();
             final ClassLoader prev = thread.getContextClassLoader();
             try {
@@ -291,24 +277,25 @@ import javax.json.JsonObject;
         }
 
         private static <T> T wrap(final ClassLoader classLoader, final Object delegate, final Class<T> api) {
-            return api.cast(Proxy.newProxyInstance(classLoader, new Class<?>[] { api },
-                    new ContextualDelegate(delegate, classLoader)));
+            return api.cast(
+                    Proxy.newProxyInstance(classLoader, new Class<?>[] { api }, new ContextualDelegate(delegate, classLoader)));
         }
 
-        @AllArgsConstructor private static class ContextualDelegate implements InvocationHandler {
+        @AllArgsConstructor
+        private static class ContextualDelegate implements InvocationHandler {
 
             private final Object delegate;
 
             private final ClassLoader classLoader;
 
-            @Override public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                 final Thread thread = Thread.currentThread();
                 final ClassLoader prev = thread.getContextClassLoader();
                 thread.setContextClassLoader(classLoader);
                 try {
                     final Object invoked = method.invoke(delegate, args);
-                    if (method.getReturnType().getName().startsWith("java.sql.") && method.getReturnType()
-                            .isInterface()) {
+                    if (method.getReturnType().getName().startsWith("java.sql.") && method.getReturnType().isInterface()) {
                         return wrap(classLoader, invoked, method.getReturnType());
                     }
                     return invoked;
