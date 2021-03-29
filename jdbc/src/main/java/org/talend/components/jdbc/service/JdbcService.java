@@ -187,15 +187,16 @@ import javax.json.JsonObject;
                 if (SNOWFLAKE_DATABASE_NAME.equals(connection.getDbType())) {
 
                     if (AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
+                        dataSource.setUsername(connection.getUserId());
                         dataSource.addDataSourceProperty("privateKey",
                                 PrivateKeyUtils.getPrivateKey(connection.getPrivateKey(),
                                         connection.getPrivateKeyPassword(), i18nMessage));
-                    }
-
-                    if (AuthenticationType.OAUTH == connection.getAuthenticationType()) {
+                    } else if (AuthenticationType.OAUTH == connection.getAuthenticationType()) {
                         dataSource.addDataSourceProperty("authenticator", "oauth");
-                        dataSource.addDataSourceProperty("token",
-                                getAccessToken(tokenClient, connection));
+                        dataSource.addDataSourceProperty("token", getAccessToken(tokenClient, connection));
+                    } else {
+                        dataSource.setUsername(connection.getUserId());
+                        dataSource.setPassword(connection.getPassword());
                     }
                 } else {
                     dataSource.setUsername(connection.getUserId());
