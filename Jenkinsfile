@@ -72,6 +72,8 @@ spec:
         APP_ID = '579232'
         ARTIFACTORY_REGISTRY = "artifactory.datapwn.com"
         TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX="artifactory.datapwn.com/docker-io-remote/"
+
+        EXTRA_BUILD_PARAMS = "${params.EXTRA_BUILD_PARAMS}"
     }
 
     options {
@@ -116,7 +118,7 @@ spec:
                     // real task
                     withCredentials([nexusCredentials]) {
                         script {
-                            sh "mvn ${params.EXTRA_BUILD_PARAMS} -B -s .jenkins/settings.xml clean install -PITs -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
+                            sh "mvn ${EXTRA_BUILD_PARAMS} -B -s .jenkins/settings.xml clean install -PITs -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/ -e ${talendOssRepositoryArg}"
                         }
                     }
                 }
@@ -152,7 +154,7 @@ spec:
                             withCredentials([dockerCredentials]) {
                                 sh """
 			                     |cd ci_documentation
-			                     |mvn ${params.EXTRA_BUILD_PARAMS} -B -s .jenkins/settings.xml clean install -DskipTests
+			                     |mvn ${EXTRA_BUILD_PARAMS} -B -s .jenkins/settings.xml clean install -DskipTests
 			                     |chmod +x .jenkins/generate-doc.sh && .jenkins/generate-doc.sh
 			                     |""".stripMargin()
                             }
@@ -176,7 +178,7 @@ spec:
                     }
                     steps {
                         container('main') {
-                            sh 'cd ci_site && mvn ${params.EXTRA_BUILD_PARAMS} -B -s .jenkins/settings.xml clean site site:stage -Dmaven.test.failure.ignore=true'
+                            sh 'cd ci_site && mvn ${EXTRA_BUILD_PARAMS} -B -s .jenkins/settings.xml clean site site:stage -Dmaven.test.failure.ignore=true'
                         }
                     }
                     post {
@@ -198,7 +200,7 @@ spec:
                     steps {
                         container('main') {
                             withCredentials([nexusCredentials]) {
-                                sh "cd ci_nexus && mvn ${params.EXTRA_BUILD_PARAMS} -B -s .jenkins/settings.xml clean deploy -e -Pdocker -DskipTests ${talendOssRepositoryArg}"
+                                sh "cd ci_nexus && mvn ${EXTRA_BUILD_PARAMS} -B -s .jenkins/settings.xml clean deploy -e -Pdocker -DskipTests ${talendOssRepositoryArg}"
                             }
                         }
                     }
@@ -217,7 +219,7 @@ spec:
                     steps {
                         container('main') {
                             withCredentials([sonarCredentials]) {
-                                sh "mvn ${params.EXTRA_BUILD_PARAMS} -Dsonar.host.url=https://sonar-eks.datapwn.com -Dsonar.login='$SONAR_LOGIN' -Dsonar.password='$SONAR_PASSWORD' -Dsonar.branch.name=${env.BRANCH_NAME} -Dsonar.coverage.jacoco.xmlReportPaths='${LIST_FILE}' sonar:sonar -PITs -s .jenkins/settings.xml -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/"
+                                sh "mvn ${EXTRA_BUILD_PARAMS} -Dsonar.host.url=https://sonar-eks.datapwn.com -Dsonar.login='$SONAR_LOGIN' -Dsonar.password='$SONAR_PASSWORD' -Dsonar.branch.name=${env.BRANCH_NAME} -Dsonar.coverage.jacoco.xmlReportPaths='${LIST_FILE}' sonar:sonar -PITs -s .jenkins/settings.xml -Dtalend.maven.decrypter.m2.location=${env.WORKSPACE}/.jenkins/"
                             }
                         }
                     }
@@ -242,7 +244,7 @@ spec:
                 container('main') {
                     withCredentials([nexusCredentials, string(credentialsId: 'xtm-token', variable: 'XTM_TOKEN')]) {
                         script {
-                            sh "mvn ${params.EXTRA_BUILD_PARAMS} -e -B clean && mvn ${params.EXTRA_BUILD_PARAMS} -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-export"
+                            sh "mvn ${EXTRA_BUILD_PARAMS} -e -B clean && mvn ${EXTRA_BUILD_PARAMS} -e -B -s .jenkins/settings.xml clean package -pl . -Pi18n-export"
                         }
                     }
                 }
@@ -260,7 +262,6 @@ spec:
                 container('main') {
                     withCredentials([nexusCredentials, string(credentialsId: 'xtm-token', variable: 'XTM_TOKEN'), gitCredentials]) {
                         script {
-                            env.EXTRA_BUILD_PARAMS = ${params.EXTRA_BUILD_PARAMS}
                             sh "sh .jenkins/xtm-deploy.sh"
                         }
                     }
@@ -278,7 +279,6 @@ spec:
             steps {
             	withCredentials([gitCredentials, nexusCredentials]) {
 					container('main') {
-                        env.EXTRA_BUILD_PARAMS = ${params.EXTRA_BUILD_PARAMS}
                         sh "sh .jenkins/release.sh"
               		}
             	}
