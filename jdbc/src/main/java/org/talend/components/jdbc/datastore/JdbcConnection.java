@@ -43,8 +43,7 @@ import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Ope
 @GridLayout({ @GridLayout.Row({ "dbType", "handler" }), @GridLayout.Row("jdbcUrl"), @GridLayout.Row("authenticationType"),
         @GridLayout.Row("userId"), @GridLayout.Row("password"), @GridLayout.Row("privateKey"),
         @GridLayout.Row("privateKeyPassword"), @GridLayout.Row("oauthTokenEndpoint"), @GridLayout.Row("clientId"),
-        @GridLayout.Row("clientSecret"), @GridLayout.Row("authorizationCode"), @GridLayout.Row("redirectUri"),
-        @GridLayout.Row("refreshToken") })
+        @GridLayout.Row("clientSecret"), @GridLayout.Row("scope") })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("connectionTimeOut"),
         @GridLayout.Row("connectionValidationTimeOut") })
 @DataStore("JdbcConnection")
@@ -121,18 +120,9 @@ public class JdbcConnection implements Serializable {
 
     @Option
     @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
-    @Documentation("Authorization code")
-    private String authorizationCode;
-
-    @Option
-    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
-    @Documentation("Redirect URI")
-    private String redirectUri;
-
-    @Option
-    @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
-    @Documentation("Refresh token")
-    private String refreshToken;
+    @Credential
+    @Documentation("Scope")
+    private String scope;
 
     @Min(0)
     @Option

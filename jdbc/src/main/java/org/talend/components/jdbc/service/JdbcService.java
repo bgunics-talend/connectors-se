@@ -228,21 +228,16 @@ public class JdbcService {
             tokenClient.base(connection.getOauthTokenEndpoint());
             StringBuilder builder = new StringBuilder();
             builder.append("client_id=").append(connection.getClientId()).append("&client_secret=")
-                    .append(connection.getClientSecret()).append("&redirect_uri=").append(connection.getRedirectUri());
+                    .append(connection.getClientSecret()).append("&scope=").append(connection.getScope())
+                    .append("&grant_type=client_credentials");
 
-            if (connection.getRefreshToken() == null) {
-                builder.append("&code=").append(connection.getAuthorizationCode()).append("&grant_type=authorization_code");
-            } else {
-                builder.append("&refresh_token=").append(connection.getRefreshToken()).append("&grant_type=refresh_token");
-            }
             Response<JsonObject> response = tokenClient.getAccessToken(builder.toString());
             JsonObject jsonResult = response.body();
+
             if (response.status() != 200) {
                 throw new IllegalArgumentException(jsonResult.getString("error_description"));
             }
 
-            of(jsonResult).filter(json -> json.containsKey("refresh_token")).map(json -> json.getString("refresh_token"))
-                    .ifPresent(connection::setRefreshToken);
             return jsonResult.getString("access_token");
         }
 
