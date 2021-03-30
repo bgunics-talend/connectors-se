@@ -179,8 +179,6 @@ public class JdbcService {
                 if ("MSSQL_JTDS".equals(driver.getId())) {
                     dataSource.setConnectionTestQuery("SELECT 1");
                 }
-                dataSource.setUsername(connection.getUserId());
-
                 if (SNOWFLAKE_DATABASE_NAME.equals(connection.getDbType())) {
 
                     if (AuthenticationType.KEY_PAIR == connection.getAuthenticationType()) {
