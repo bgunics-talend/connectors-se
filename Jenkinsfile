@@ -72,8 +72,6 @@ spec:
         APP_ID = '579232'
         ARTIFACTORY_REGISTRY = "artifactory.datapwn.com"
         TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX="artifactory.datapwn.com/docker-io-remote/"
-
-        EXTRA_BUILD_PARAMS = "${params.EXTRA_BUILD_PARAMS}"
     }
 
     options {
@@ -91,7 +89,7 @@ spec:
                choices: [ 'STANDARD', 'PUSH_TO_XTM', 'DEPLOY_FROM_XTM', 'RELEASE' ],
                description: 'Kind of running : \nSTANDARD (default), normal building\n PUSH_TO_XTM : Export the project i18n resources to Xtm to be translated. This action can be performed from master or maintenance branches only. \nDEPLOY_FROM_XTM: Download and deploy i18n resources from Xtm to nexus for this branch.\nRELEASE : build release')
         booleanParam(name: 'FORCE_SONAR', defaultValue: false, description: 'Force Sonar analysis')
-        string(name: 'EXTRA_BUILD_PARAMS', defaultValue: ' ', description: 'Add some extra parameters to maven commands. Applies to all maven calls.')
+        string(name: 'EXTRA_BUILD_PARAMS', defaultValue: "", description: 'Add some extra parameters to maven commands. Applies to all maven calls.')
     }
 
     stages {
@@ -100,6 +98,7 @@ spec:
                 container('main') {
                     withCredentials([dockerCredentials]) {
                         sh '''#!/bin/bash
+                        env|sort
                         docker version
                         echo $ARTIFACTORY_PASSWORD | docker login $ARTIFACTORY_REGISTRY -u $ARTIFACTORY_LOGIN --password-stdin
                         '''
