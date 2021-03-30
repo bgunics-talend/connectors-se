@@ -120,7 +120,6 @@ public class JdbcConnection implements Serializable {
 
     @Option
     @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
-    @Credential
     @Documentation("Scope")
     private String scope;
 
