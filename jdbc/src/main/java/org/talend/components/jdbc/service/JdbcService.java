@@ -12,7 +12,6 @@
  */
 package org.talend.components.jdbc.service;
 
-import static java.util.Optional.of;
 import static java.sql.ResultSetMetaData.columnNoNulls;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
@@ -43,6 +42,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
+import org.talend.components.jdbc.datastore.GrantType;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
@@ -228,8 +228,15 @@ public class JdbcService {
             tokenClient.base(connection.getOauthTokenEndpoint());
             StringBuilder builder = new StringBuilder();
             builder.append("client_id=").append(connection.getClientId()).append("&client_secret=")
-                    .append(connection.getClientSecret()).append("&scope=").append(connection.getScope())
-                    .append("&grant_type=client_credentials");
+                    .append(connection.getClientSecret()).append("&grant_type=")
+                    .append(connection.getGrantType().name().toLowerCase());
+
+            if (connection.getGrantType() == GrantType.PASSWORD) {
+                builder.append("&oauth_username=").append(connection.getOauthUsername()).append("&oauth_password=")
+                        .append(connection.getPassword());
+            }
+
+            builder.append("&scope=").append(connection.getScope());
 
             Response<JsonObject> response = tokenClient.getAccessToken(builder.toString());
             JsonObject jsonResult = response.body();

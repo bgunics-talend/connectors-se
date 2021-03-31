@@ -35,6 +35,7 @@ import java.io.Serializable;
 
 import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_HANDLERS_DB;
 import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_SUPPORTED_DB;
+import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.AND;
 import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator.OR;
 
 @Data
@@ -43,7 +44,7 @@ import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Ope
 @GridLayout({ @GridLayout.Row({ "dbType", "handler" }), @GridLayout.Row("jdbcUrl"), @GridLayout.Row("authenticationType"),
         @GridLayout.Row("userId"), @GridLayout.Row("password"), @GridLayout.Row("privateKey"),
         @GridLayout.Row("privateKeyPassword"), @GridLayout.Row("oauthTokenEndpoint"), @GridLayout.Row("clientId"),
-        @GridLayout.Row("clientSecret"), @GridLayout.Row("scope") })
+        @GridLayout.Row("clientSecret"), @GridLayout.Row("grantType"), @GridLayout.Row("scope") })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("connectionTimeOut"),
         @GridLayout.Row("connectionValidationTimeOut") })
 @DataStore("JdbcConnection")
@@ -117,6 +118,28 @@ public class JdbcConnection implements Serializable {
     @Credential
     @Documentation("Client secret")
     private String clientSecret;
+
+    @Option
+    @DefaultValue("CLIENT_CREDENTIALS")
+    @ActiveIfs(value = { @ActiveIf(target = "dbType", value = "Snowflake"),
+            @ActiveIf(target = "authenticationType", value = "OAUTH") }, operator = AND)
+    @Documentation("Grant type")
+    private GrantType grantType;
+
+    @Option
+    @ActiveIfs(value = { @ActiveIf(target = "dbType", value = "Snowflake"),
+            @ActiveIf(target = "authenticationType", value = "OAUTH"),
+            @ActiveIf(target = "grantType", value = "PASSWORD") }, operator = AND)
+    @Documentation("Oauth username")
+    private String oauthUsername;
+
+    @Option
+    @ActiveIfs(value = { @ActiveIf(target = "dbType", value = "Snowflake"),
+            @ActiveIf(target = "authenticationType", value = "OAUTH"),
+            @ActiveIf(target = "grantType", value = "PASSWORD") }, operator = AND)
+    @Credential
+    @Documentation("Oauth password")
+    private String oauthPassword;
 
     @Option
     @ActiveIfs({ @ActiveIf(target = "dbType", value = "Snowflake"), @ActiveIf(target = "authenticationType", value = "OAUTH") })
