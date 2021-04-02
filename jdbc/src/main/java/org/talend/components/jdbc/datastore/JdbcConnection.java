@@ -44,7 +44,8 @@ import static org.talend.sdk.component.api.configuration.condition.ActiveIfs.Ope
 @GridLayout({ @GridLayout.Row({ "dbType", "handler" }), @GridLayout.Row("jdbcUrl"), @GridLayout.Row("authenticationType"),
         @GridLayout.Row("userId"), @GridLayout.Row("password"), @GridLayout.Row("privateKey"),
         @GridLayout.Row("privateKeyPassword"), @GridLayout.Row("oauthTokenEndpoint"), @GridLayout.Row("clientId"),
-        @GridLayout.Row("clientSecret"), @GridLayout.Row("grantType"), @GridLayout.Row("scope") })
+        @GridLayout.Row("clientSecret"), @GridLayout.Row("grantType"), @GridLayout.Row("oauthUsername"),
+        @GridLayout.Row("oauthPassword"), @GridLayout.Row("scope") })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row("connectionTimeOut"),
         @GridLayout.Row("connectionValidationTimeOut") })
 @DataStore("JdbcConnection")
@@ -130,7 +131,7 @@ public class JdbcConnection implements Serializable {
     @ActiveIfs(value = { @ActiveIf(target = "dbType", value = "Snowflake"),
             @ActiveIf(target = "authenticationType", value = "OAUTH"),
             @ActiveIf(target = "grantType", value = "PASSWORD") }, operator = AND)
-    @Documentation("Oauth username")
+    @Documentation("OAuth username")
     private String oauthUsername;
 
     @Option
@@ -138,7 +139,7 @@ public class JdbcConnection implements Serializable {
             @ActiveIf(target = "authenticationType", value = "OAUTH"),
             @ActiveIf(target = "grantType", value = "PASSWORD") }, operator = AND)
     @Credential
-    @Documentation("Oauth password")
+    @Documentation("OAuth password")
     private String oauthPassword;
 
     @Option
