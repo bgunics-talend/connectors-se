@@ -214,12 +214,6 @@
                     <artifactId>snowflake-jdbc</artifactId>
                     <version>${snowflake.version}</version>
                     <scope>provided</scope>
-				    <exclusions>
-                        <exclusion>
-                             <groupId>net.java.dev.jna</groupId>
-                             <artifactId>jna</artifactId>
-                         </exclusion>
-                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>com.amazon.redshift</groupId>
