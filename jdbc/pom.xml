@@ -154,6 +154,18 @@
             <artifactId>bcprov-jdk15on</artifactId>
             <version>${bouncycastle.version}</version>
         </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>5.5.0</version>
+            <scope>test</scope>
+          </dependency>
+          <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna-platform</artifactId>
+            <version>5.5.0</version>
+            <scope>test</scope>
+          </dependency>
     </dependencies>
 
     <build>
@@ -214,16 +226,6 @@
                     <artifactId>snowflake-jdbc</artifactId>
                     <version>${snowflake.version}</version>
                     <scope>provided</scope>
-                    <exclusions>
-                        <exclusion>
-                             <groupId>net.java.dev.jna</groupId>
-                             <artifactId>jna</artifactId>
-                         </exclusion>
-                         <exclusion>
-                             <groupId>net.java.dev.jna</groupId>
-                             <artifactId>jna-platform</artifactId>
-                         </exclusion>
-                    </exclusions>
                 </dependency>
                 <dependency>
                     <groupId>com.amazon.redshift</groupId>
