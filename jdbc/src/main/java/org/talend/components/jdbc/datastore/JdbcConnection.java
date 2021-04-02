@@ -85,7 +85,7 @@ public class JdbcConnection implements Serializable {
 
     @Option
     @ActiveIfs(value = { @ActiveIf(target = "dbType", value = "Snowflake", negate = true),
-            @ActiveIf(target = "authenticationType", value = "KEY_PAIR", negate = true) }, operator = OR)
+            @ActiveIf(target = "authenticationType", value = "BASIC", negate = true) }, operator = AND)
     @Credential
     @Documentation("database password")
     private String password;
