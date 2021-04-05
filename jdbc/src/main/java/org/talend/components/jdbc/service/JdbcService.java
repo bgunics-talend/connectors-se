@@ -232,7 +232,7 @@ public class JdbcService {
                     .append(connection.getGrantType().name().toLowerCase());
 
             if (connection.getGrantType() == GrantType.PASSWORD) {
-                builder.append("&oauth_username=").append(connection.getOauthUsername()).append("&oauth_password=")
+                builder.append("&USER=").append(connection.getOauthUsername()).append("&PASSWORD=")
                         .append(connection.getOauthPassword());
             }
 
