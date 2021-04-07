@@ -14,7 +14,9 @@ package org.talend.components.jdbc.service;
 
 import javax.json.JsonObject;
 
+import org.talend.sdk.component.api.service.http.Base;
 import org.talend.sdk.component.api.service.http.Configurer;
+import org.talend.sdk.component.api.service.http.Header;
 import org.talend.sdk.component.api.service.http.HttpClient;
 import org.talend.sdk.component.api.service.http.Request;
 import org.talend.sdk.component.api.service.http.Response;
@@ -30,7 +32,7 @@ public interface TokenClient extends HttpClient {
 
     @UseConfigurer(TokenConfigurer.class)
     @Request(method = "POST")
-    Response<JsonObject> getAccessToken(String payload);
+    Response<JsonObject> getAccessToken(@Base String base, @Header("Authorization") String authorization, String payload);
 
     class TokenConfigurer implements Configurer {
 

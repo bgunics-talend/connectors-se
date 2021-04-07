@@ -99,4 +99,6 @@ public interface I18nMessage {
     String errorPrivateKeyIncorrect();
 
     String errorCantDiscoverDataset(String error);
+
+    String errorAccessTokenResponse(String field);
 }
