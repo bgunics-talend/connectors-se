@@ -30,13 +30,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -44,26 +42,22 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-import org.talend.components.jdbc.datastore.GrantType;
-import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
 import org.talend.components.jdbc.configuration.JdbcConfiguration;
 import org.talend.components.jdbc.datastore.AuthenticationType;
 import org.talend.components.jdbc.datastore.JdbcConnection;
-import org.talend.components.jdbc.exceptions.InvalidTokenRequestException;
 import org.talend.components.jdbc.output.platforms.PlatformFactory;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.configuration.Configuration;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
 import org.talend.sdk.component.api.service.dependency.Resolver;
-import org.talend.sdk.component.api.service.http.Response;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import com.zaxxer.hikari.HikariDataSource;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import javax.json.JsonObject;
 
 @Slf4j
 @Service
@@ -188,7 +182,7 @@ public class JdbcService {
                                 connection.getPrivateKeyPassword(), i18n));
                     } else if (AuthenticationType.OAUTH == connection.getAuthenticationType()) {
                         dataSource.addDataSourceProperty("authenticator", "oauth");
-                        dataSource.addDataSourceProperty("token", getAccessToken(connection));
+                        dataSource.addDataSourceProperty("token", OAuth2Utils.getAccessToken(connection, tokenClient, i18n));
                     } else {
                         dataSource.setUsername(connection.getUserId());
                         dataSource.setPassword(connection.getPassword());
@@ -223,27 +217,6 @@ public class JdbcService {
             } finally {
                 thread.setContextClassLoader(prev);
             }
-        }
-
-        private String getAccessToken(JdbcConnection connection) {
-            StringBuilder builder = new StringBuilder();
-            builder.append("grant_type=").append(connection.getGrantType().name().toLowerCase()).append("&scope=")
-                    .append(connection.getScope());
-
-            if (connection.getGrantType() == GrantType.PASSWORD) {
-                builder.append("&username=").append(connection.getOauthUsername()).append("&password=")
-                        .append(connection.getOauthPassword());
-            }
-            String urlEncoded = "Basic " + Base64.getEncoder().encodeToString(
-                    (connection.getClientId() + ':' + connection.getClientSecret()).getBytes(StandardCharsets.UTF_8));
-            Response<JsonObject> response = tokenClient.getAccessToken(connection.getOauthTokenEndpoint(), urlEncoded,
-                    builder.toString());
-            JsonObject jsonResult = response.body();
-            if (response.status() != 200) {
-                throw new InvalidTokenRequestException(i18n.errorAccessTokenResponse(response.error(String.class)));
-            }
-
-            return jsonResult.getString("access_token");
         }
 
         public Connection getConnection() throws SQLException {

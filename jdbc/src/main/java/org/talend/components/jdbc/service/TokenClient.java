@@ -15,32 +15,14 @@ package org.talend.components.jdbc.service;
 import javax.json.JsonObject;
 
 import org.talend.sdk.component.api.service.http.Base;
-import org.talend.sdk.component.api.service.http.Configurer;
 import org.talend.sdk.component.api.service.http.Header;
 import org.talend.sdk.component.api.service.http.HttpClient;
 import org.talend.sdk.component.api.service.http.Request;
 import org.talend.sdk.component.api.service.http.Response;
-import org.talend.sdk.component.api.service.http.UseConfigurer;
 
 public interface TokenClient extends HttpClient {
 
-    String CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
-
-    String CONTENT_TYPE = "Content-Type";
-
-    String CONTENT_LENGTH = "Content-Length";
-
-    @UseConfigurer(TokenConfigurer.class)
     @Request(method = "POST")
     Response<JsonObject> getAccessToken(@Base String base, @Header("Authorization") String authorization, String payload);
 
-    class TokenConfigurer implements Configurer {
-
-        @Override
-        public void configure(Connection connection, ConfigurerConfiguration configuration) {
-            connection.withHeader(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED).withHeader(CONTENT_LENGTH,
-                    String.valueOf(connection.getPayload().length));
-        }
-
-    }
 }
