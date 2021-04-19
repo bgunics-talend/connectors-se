@@ -50,7 +50,7 @@ public class CouchbaseInputConfiguration implements Serializable {
     @TextArea
     @Code("sql")
     @Documentation("The N1QL query.")
-    @ActiveIf(target = "selectAction", value = { "N1QL", "N1QL_ANALYTICS" })
+    @ActiveIf(target = "selectAction", value = { "N1QL", "ANALYTICS" })
     private String query;
 
     @Option

@@ -15,6 +15,6 @@ package org.talend.components.couchbase.source;
 public enum SelectAction {
     ALL,
     N1QL,
-    N1QL_ANALYTICS,
+    ANALYTICS,
     ONE
 }
