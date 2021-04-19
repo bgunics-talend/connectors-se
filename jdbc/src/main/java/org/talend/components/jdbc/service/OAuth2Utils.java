@@ -24,25 +24,25 @@ import org.talend.sdk.component.api.service.http.Response;
 
 public final class OAuth2Utils {
 
-    private static final String ACCESS_TOKEN_NAME = "access_token";
+    static final String ACCESS_TOKEN_NAME = "access_token";
 
-    private static final String ERROR_DESCRIPTION = "error_description";
+    static final String ERROR_DESCRIPTION = "error_description";
 
-    private static final String ERROR_SUMMARY = "errorSummary";
+    static final String ERROR_SUMMARY = "errorSummary";
 
-    private static final String USERNAME = "username";
+    static final String USERNAME = "username";
 
-    private static final String PASSWORD = "password";
+    static final String PASSWORD = "password";
 
-    private static final String GRANT_TYPE = "grant_type";
+    static final String GRANT_TYPE = "grant_type";
 
-    private static final String SCOPE = "scope";
+    static final String SCOPE = "scope";
 
-    private static final char PARAMETER_SEPARATOR = '&';
+    static final char PARAMETER_SEPARATOR = '&';
 
-    private static final char VALUE_SEPARATOR = '=';
+    static final char VALUE_SEPARATOR = '=';
 
-    private static final String AUTHORIZATION_PREFIX = "Basic ";
+    static final String AUTHORIZATION_PREFIX = "Basic ";
 
     private OAuth2Utils() {
     }
