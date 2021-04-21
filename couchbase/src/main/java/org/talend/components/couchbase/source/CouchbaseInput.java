@@ -95,7 +95,7 @@ public class CouchbaseInput implements Serializable {
 
         columnsSet = new HashSet<>();
 
-        if (configuration.getSelectAction() == SelectAction.ANALYTICS) {
+        if (configuration.getSelectAction() == SelectAction.N1QL_ANALYTICS) {
             AnalyticsQuery analyticsQuery = AnalyticsQuery.simple(configuration.getQuery());
             AnalyticsQueryResult analyticsQueryRows = bucket.query(analyticsQuery);
             checkErrors(analyticsQueryRows);
@@ -137,7 +137,7 @@ public class CouchbaseInput implements Serializable {
 
     @Producer
     public Record next() {
-        if (configuration.getSelectAction() == SelectAction.ANALYTICS) {
+        if (configuration.getSelectAction() == SelectAction.N1QL_ANALYTICS) { // this resulted in an NPE
             while (index_analytics.hasNext()) {
                 JsonObject jsonObject = index_analytics.next().value();
                 if (configuration.getDataSet().getDocumentType() == DocumentType.JSON) {
