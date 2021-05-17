@@ -92,12 +92,17 @@ public class CouchbaseInput implements Serializable {
         Cluster cluster = service.openConnection(configuration.getDataSet().getDatastore());
         bucket = service.openBucket(cluster, configuration.getDataSet().getBucket());
         bucket.bucketManager().createN1qlPrimaryIndex(true, false);
+        int queryTimeout = configuration.getDataSet().getDatastore().getConnectTimeout(); // convert to sec
+        if (queryTimeout < 75)
+            queryTimeout = 75; // default is 75 second
 
         columnsSet = new HashSet<>();
 
         if (configuration.getSelectAction() == SelectAction.N1QL_ANALYTICS) {
             AnalyticsQuery analyticsQuery = AnalyticsQuery.simple(configuration.getQuery());
-            AnalyticsQueryResult analyticsQueryRows = bucket.query(analyticsQuery);
+            // Test purpose:
+            AnalyticsQueryResult analyticsQueryRows = bucket.query(analyticsQuery, queryTimeout,
+                    java.util.concurrent.TimeUnit.SECONDS);
             checkErrors(analyticsQueryRows);
             index_analytics = analyticsQueryRows.rows(); // would be nice to have a parent object to avoid having 2 iterators.
         } else {
@@ -129,7 +134,7 @@ public class CouchbaseInput implements Serializable {
                 throw new RuntimeException("Select action: '" + configuration.getSelectAction() + "' is unsupported");
             }
             n1qlQuery.params().consistency(ScanConsistency.REQUEST_PLUS);
-            N1qlQueryResult n1qlQueryRows = bucket.query(n1qlQuery);
+            N1qlQueryResult n1qlQueryRows = bucket.query(n1qlQuery, queryTimeout, java.util.concurrent.TimeUnit.SECONDS);
             checkErrors(n1qlQueryRows);
             index = n1qlQueryRows.rows();
         }
