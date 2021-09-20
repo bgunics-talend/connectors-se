@@ -28,6 +28,7 @@ import org.talend.components.adlsgen2.service.BlobInformations;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+import org.talend.components.adlsgen2.runtime.AdlsGen2RuntimeException;
 
 import lombok.extern.slf4j.Slf4j;
 
