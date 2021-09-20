@@ -18,6 +18,7 @@ import org.talend.components.adlsgen2.dataset.AdlsGen2DataSet;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
+import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 
 import lombok.Data;
 
@@ -27,7 +28,11 @@ import lombok.Data;
 })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { //
         @GridLayout.Row({ "dataSet" }), //
-        @GridLayout.Row({ "blobNameTemplate" }) })
+        @GridLayout.Row({ "blobNameTemplate" }), //
+        @GridLayout.Row({ "fileExtensionOverride" }), //
+        @GridLayout.Row({ "fileExtension" }), // 
+        @GridLayout.Row({ "fileFormatNoUUID" }), //
+        @GridLayout.Row({ "fileExistsException" }) })
 @Documentation("ADLS output configuration")
 public class OutputConfiguration implements Serializable {
 
@@ -39,5 +44,24 @@ public class OutputConfiguration implements Serializable {
     @Documentation("Generated blob item name prefix.\nBatch file would have name prefix + UUID + extension.\n"
             + "I.e. myPrefix-5deaa8ff-7d22-4b86-a864-9a6fa414501a.avro")
     private String blobNameTemplate = "data-";
+
+    @Option
+    @Documentation("Override File extension")
+    private boolean fileExtensionOverride;
+
+    @Option
+    @ActiveIf(target = "fileExtensionOverride", value = "true")
+    @Documentation("File extension to use")
+    private String fileExtension;
+
+    @Option
+    @Documentation("Don't generate UUID to output file")
+    private boolean fileFormatNoUUID;
+
+    //What happens if we already have the file?
+    @Option
+    @Documentation("Throw an error if the file already exist")
+    @ActiveIf(target = "fileFormatNoUUID", value = "true")
+    private boolean fileExistsException;
 
 }
