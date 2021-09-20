@@ -69,8 +69,16 @@ public abstract class BlobWriter {
         if (!directoryName.endsWith("/")) {
             directoryName += "/";
         }
-        String blobName = directoryName + configuration.getBlobNameTemplate() + UUID.randomUUID() + extension;
+        if(configuration.getFileExtensionOverride()) {
+            extension = configuration.getFileExtension();
+        }
+        String blobName = directoryName + configuration.getBlobNameTemplate() + 
+            (configuration.FileFormatNoUUID() ? "" : UUID.randomUUID()) + extension;
         while (service.blobExists(runtimeInfo, blobName)) {
+            //I don't like this part but should be quick & dirty.
+            if(configuration.FileFormatNoUUID() && configuration.getFileExistsException()) {
+                throw new AdlsGen2RuntimeException("File with name " + blobName + " already exists.");
+            }
             blobName = directoryName + configuration.getBlobNameTemplate() + UUID.randomUUID() + extension;
         }
         currentItem.setBlobPath(blobName);
