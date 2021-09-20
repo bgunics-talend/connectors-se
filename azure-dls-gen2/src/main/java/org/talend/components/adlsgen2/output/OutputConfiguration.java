@@ -47,7 +47,7 @@ public class OutputConfiguration implements Serializable {
 
     @Option
     @Documentation("Override File extension")
-    private boolean fileExtensionOverride;
+    private Boolean fileExtensionOverride = false;
 
     @Option
     @ActiveIf(target = "fileExtensionOverride", value = "true")
@@ -56,12 +56,12 @@ public class OutputConfiguration implements Serializable {
 
     @Option
     @Documentation("Don't generate UUID to output file")
-    private boolean fileFormatNoUUID;
+    private Boolean fileFormatNoUUID = false;
 
     //What happens if we already have the file?
     @Option
     @Documentation("Throw an error if the file already exist")
     @ActiveIf(target = "fileFormatNoUUID", value = "true")
-    private boolean fileExistsException;
+    private Boolean fileExistsException = false;
 
 }
