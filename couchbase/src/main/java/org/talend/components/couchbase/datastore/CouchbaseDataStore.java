@@ -37,7 +37,8 @@ import lombok.Data;
         value = { @GridLayout.Row({ "bootstrapNodes" }), @GridLayout.Row({ "username" }),
                 @GridLayout.Row({ "password" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "useConnectionParameters" }),
-        @GridLayout.Row({ "connectionParametersList" }) })
+        @GridLayout.Row({ "connectionParametersList" }),
+        @GridLayout.Row({ "enableTLS" }) })
 @Documentation("Couchbase connection.")
 public class CouchbaseDataStore implements Serializable {
 
@@ -66,4 +67,7 @@ public class CouchbaseDataStore implements Serializable {
     @ActiveIf(target = "useConnectionParameters", value = "true")
     private List<ConnectionConfiguration> connectionParametersList = new ArrayList<>();
 
+    @Option
+    @Documentation("Use TLS.")
+    private boolean enableTLS = false;
 }

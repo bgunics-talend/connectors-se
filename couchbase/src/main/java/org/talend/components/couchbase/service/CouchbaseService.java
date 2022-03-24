@@ -62,6 +62,7 @@ import com.couchbase.client.core.diagnostics.PingResult;
 import com.couchbase.client.core.env.ThresholdLoggingTracerConfig;
 import com.couchbase.client.core.env.TimeoutConfig;
 import com.couchbase.client.core.env.TimeoutConfig.Builder;
+import com.couchbase.client.core.env.SecurityConfig;
 import com.couchbase.client.core.error.AuthenticationFailureException;
 import com.couchbase.client.core.error.UnambiguousTimeoutException;
 import com.couchbase.client.java.Bucket;
@@ -107,6 +108,7 @@ public class CouchbaseService implements Serializable {
 
         ClusterHolder holder = clustersPool.computeIfAbsent(dataStore, ds -> {
             ClusterEnvironment.Builder envBuilder = ClusterEnvironment.builder();
+            envBuilder.securityConfig(SecurityConfig.enableTls(dataStore.isEnableTLS()));
 
             if (dataStore.isUseConnectionParameters()) {
                 Builder timeoutBuilder = TimeoutConfig.builder();
