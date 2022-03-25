@@ -36,6 +36,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.Optional;
+import java.nio.file.Paths;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,8 +110,15 @@ public class CouchbaseService implements Serializable {
 
         ClusterHolder holder = clustersPool.computeIfAbsent(dataStore, ds -> {
             ClusterEnvironment.Builder envBuilder = ClusterEnvironment.builder();
-            envBuilder.securityConfig(SecurityConfig.enableTls(dataStore.isEnableTLS()));
 
+            if (dataStore.isEnableTLS()) {
+                envBuilder.securityConfig(
+                        SecurityConfig.enableTls(true)
+                                .trustStore(
+                                        Paths.get(dataStore.getTrustStorePath()),
+                                        dataStore.getTrustStorePassword(),
+                                        Optional.of(dataStore.getTrustStoreType())));
+            }
             if (dataStore.isUseConnectionParameters()) {
                 Builder timeoutBuilder = TimeoutConfig.builder();
                 dataStore.getConnectionParametersList()
