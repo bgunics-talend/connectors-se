@@ -1,3 +1,15 @@
+/*
+ * Copyright (C) 2006-2022 Talend Inc. - www.talend.com
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 package org.talend.components.adlsgen2.runtime.output;
 
 import javax.json.Json;
@@ -42,6 +54,7 @@ class JsonBlobWriterTest {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         final AdlsGen2Service service = new AdlsGen2Service() {
+
             @Override
             public boolean blobExists(AdlsGen2DataSet dataSet, String blobName) {
                 return false;
@@ -82,19 +95,18 @@ class JsonBlobWriterTest {
     }
 
     private Record buildRecord(final Schema schema,
-                               final RecordBuilderFactory factory,
-                               int index) {
+            final RecordBuilderFactory factory,
+            int index) {
         return factory.newRecordBuilder(schema)
                 .withString("f1", "value_" + index)
                 .withArray(this.fArray,
                         Arrays.asList(
-                        factory.newRecordBuilder(this.innerRecord)
-                                .withString("inner", "value Inner_" + index + "_1")
-                                .build(),
-                        factory.newRecordBuilder(this.innerRecord)
-                                .withString("inner", "value Inner_" + index + "_2")
-                                .build())
-                        )
+                                factory.newRecordBuilder(this.innerRecord)
+                                        .withString("inner", "value Inner_" + index + "_1")
+                                        .build(),
+                                factory.newRecordBuilder(this.innerRecord)
+                                        .withString("inner", "value Inner_" + index + "_2")
+                                        .build()))
                 .build();
     }
 

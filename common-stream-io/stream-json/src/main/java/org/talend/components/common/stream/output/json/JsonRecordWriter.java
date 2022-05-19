@@ -28,7 +28,7 @@ public class JsonRecordWriter implements RecordWriter {
 
     private final TargetFinder target;
 
-    private transient JsonGenerator jsonGenerator = null;
+    private JsonGenerator jsonGenerator = null;
 
     private final RecordConverter<JsonObject, Void> toJson;
 

@@ -44,7 +44,7 @@ class JsonPointerParserTest {
             Assertions.assertTrue(values.hasNext());
             JsonValue v = values.next();
             Assertions.assertNotNull(v);
-            Assertions.assertSame(v.getValueType(), ValueType.NUMBER);
+            Assertions.assertSame(ValueType.NUMBER, v.getValueType());
             Assertions.assertEquals(val, ((JsonNumber) v).intValue());
         }
 
@@ -61,12 +61,12 @@ class JsonPointerParserTest {
                 Assertions.assertTrue(values.hasNext()); // must be re-entrant.
             }
             JsonValue vOne = values.next();
-            Assertions.assertSame(vOne.getValueType(), ValueType.NUMBER);
+            Assertions.assertSame(ValueType.NUMBER, vOne.getValueType());
             Assertions.assertEquals(1, ((JsonNumber) vOne).intValue());
 
             Assertions.assertTrue(values.hasNext());
             JsonValue vSec = values.next();
-            Assertions.assertSame(vSec.getValueType(), JsonValue.ValueType.OBJECT);
+            Assertions.assertSame(JsonValue.ValueType.OBJECT, vSec.getValueType());
             Assertions.assertEquals("obj", vSec.asJsonObject().getString("sub"));
             final JsonArray field2 = vSec.asJsonObject().getJsonArray("field2");
             Assertions.assertEquals(1, field2.getInt(0));
@@ -75,7 +75,7 @@ class JsonPointerParserTest {
 
             Assertions.assertTrue(values.hasNext());
             JsonValue v3 = values.next();
-            Assertions.assertSame(v3.getValueType(), ValueType.ARRAY);
+            Assertions.assertSame(ValueType.ARRAY, v3.getValueType());
             Assertions.assertEquals("a", v3.asJsonArray().getString(0));
 
             Assertions.assertFalse(values.hasNext());
@@ -93,7 +93,7 @@ class JsonPointerParserTest {
 
             Assertions.assertTrue(values.hasNext());
             JsonValue vObject = values.next();
-            Assertions.assertSame(vObject.getValueType(), JsonValue.ValueType.OBJECT);
+            Assertions.assertSame(JsonValue.ValueType.OBJECT, vObject.getValueType());
             Assertions.assertEquals("v1", vObject.asJsonObject().getString("f1"));
 
             Assertions.assertFalse(values.hasNext());

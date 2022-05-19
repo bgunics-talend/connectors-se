@@ -14,11 +14,14 @@ package org.talend.components.common.stream.output.avro;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.avro.LogicalTypes;
 import org.apache.avro.SchemaBuilder;
 import org.talend.sdk.component.api.record.Schema;
+
+import static org.talend.components.common.stream.Constants.*;
 
 public class SchemaToAvro {
 
@@ -43,7 +46,17 @@ public class SchemaToAvro {
         for (Schema.Entry e : schema.getEntries()) {
             final String name = e.getName();
 
-            org.apache.avro.Schema builder = this.extractSchema(name, e.getType(), e.getElementSchema());
+            org.apache.avro.Schema builder = null;
+            if (isDecimalType(e.getProps())) {
+                builder = createDecimalSchema(name, e.getProp(STUDIO_LENGTH), e.getProp(STUDIO_PRECISION));
+            } else if (Schema.Type.ARRAY.equals(e.getType())
+                    && isDecimalType(e.getElementSchema().getProps())) {
+                Schema elementSchema = e.getElementSchema();
+                builder = org.apache.avro.Schema.createArray(createDecimalSchema(null,
+                        elementSchema.getProp(STUDIO_LENGTH), elementSchema.getProp(STUDIO_PRECISION)));
+            } else {
+                builder = this.extractSchema(name, e.getType(), e.getElementSchema());
+            }
 
             org.apache.avro.Schema unionWithNull;
             if (!e.isNullable()) {
@@ -58,6 +71,25 @@ public class SchemaToAvro {
         final String realName = schemaName == null ? this.buildSchemaId(schema) : schemaName;
         return org.apache.avro.Schema
                 .createRecord(realName, "", currentRecordNamespace, false, fields);
+    }
+
+    private org.apache.avro.Schema createDecimalSchema(String name, String lengthStr, String precisionStr) {
+        org.apache.avro.Schema builder = org.apache.avro.Schema.createFixed(name, null, null, 16);
+        int length = 0;
+        if (lengthStr != null && !lengthStr.isEmpty()) {
+            length = Integer.parseInt(lengthStr);
+        }
+        if (precisionStr != null && !precisionStr.isEmpty()) {
+            int scale = Integer.parseInt(precisionStr);
+            LogicalTypes.decimal(length, scale).addToSchema(builder);
+        } else {
+            LogicalTypes.decimal(length).addToSchema(builder);
+        }
+        return builder;
+    }
+
+    private boolean isDecimalType(Map<String, String> props) {
+        return props != null && props.get(STUDIO_TYPE) != null && BIGDECIMAL.equals(props.get(STUDIO_TYPE));
     }
 
     private org.apache.avro.Schema extractSchema(
@@ -78,7 +110,9 @@ public class SchemaToAvro {
             } else {
                 arrayType = this.extractSchema(null, elementSchema.getType(), elementSchema);
             }
-            extractedSchema = org.apache.avro.Schema.createArray(arrayType);
+            final org.apache.avro.Schema nullableArrayType =
+                    SchemaBuilder.unionOf().type(arrayType).and().nullType().endUnion();
+            extractedSchema = org.apache.avro.Schema.createArray(nullableArrayType);
             break;
         case STRING:
         case BYTES:

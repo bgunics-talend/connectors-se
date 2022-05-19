@@ -32,7 +32,7 @@ import org.talend.sdk.component.runtime.record.RecordBuilderFactoryImpl;
 class JsonWriterSupplierTest {
 
     @Test
-    public void write() throws IOException {
+    void write() throws IOException {
 
         final JsonWriterSupplier supplier = new JsonWriterSupplier();
         final JsonConfiguration configuration = new JsonConfiguration();

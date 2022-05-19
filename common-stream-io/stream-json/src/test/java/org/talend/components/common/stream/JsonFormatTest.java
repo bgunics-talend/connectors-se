@@ -14,6 +14,7 @@ package org.talend.components.common.stream;
 
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -30,6 +31,7 @@ import org.talend.components.common.stream.input.json.JsonReaderSupplier;
 import org.talend.components.common.stream.output.json.JsonWriterSupplier;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.record.Schema.Entry;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit.environment.Environment;
@@ -124,6 +126,27 @@ class JsonFormatTest {
     }
 
     @EnvironmentalTest
+    void recordsInArrayHaveTheSameSchema() {
+        config.setJsonFile("arrayOfRecordWithNullElements.json");
+        final List<Record> records = runPipeline();
+        Assertions.assertEquals(1, records.size());
+
+        final Record wrapper = records.get(0);
+        Assertions.assertEquals(Schema.Type.RECORD, wrapper.getSchema().getType());
+
+        final List<Entry> wrapperEntries = wrapper.getSchema().getEntries();
+        Assertions.assertFalse(wrapperEntries.isEmpty());
+        Assertions.assertEquals(Schema.Type.ARRAY, wrapperEntries.get(0).getType());
+        final Schema arrayElementSchema = wrapperEntries.get(0).getElementSchema();
+        Assertions.assertEquals(Schema.Type.RECORD, arrayElementSchema.getType());
+
+        final List<Record> array = new ArrayList<>(wrapper.getArray(Record.class, "data"));
+        Assertions.assertEquals(2, array.size());
+        Assertions.assertEquals(arrayElementSchema.getEntries(), array.get(0).getSchema().getEntries());
+        Assertions.assertEquals(arrayElementSchema.getEntries(), array.get(1).getSchema().getEntries());
+    }
+
+    @EnvironmentalTest
     void testArrayOfArrays() {
         config.setJsonFile("arrayOfArrays.json");
         final List<Record> records = runPipeline();
@@ -208,16 +231,16 @@ class JsonFormatTest {
         Assertions.assertEquals(1, records.size());
 
         final Record record = records.get(0);
-        Assertions.assertEquals(Schema.Type.ARRAY, record.getSchema().getEntries().get(0).getType());
-        Assertions
-                .assertEquals(Schema.Type.RECORD, record.getSchema().getEntries().get(0).getElementSchema().getType());
-        Assertions.assertEquals(4, record.getSchema().getEntries().get(0).getElementSchema().getEntries().size());
-        Assertions
-                .assertEquals(Schema.Type.STRING,
-                        record.getSchema().getEntries().get(0).getElementSchema().getEntries().get(2).getType());
-        Assertions
-                .assertEquals("ddd",
-                        record.getSchema().getEntries().get(0).getElementSchema().getEntries().get(2).getName());
+        final Schema.Entry arrayEntry = record.getSchema().getEntries().get(0);
+        Assertions.assertEquals(Schema.Type.ARRAY, arrayEntry.getType());
+        final Schema elementSchema = arrayEntry.getElementSchema();
+
+        Assertions.assertEquals(Schema.Type.RECORD, elementSchema.getType());
+        Assertions.assertEquals(4, elementSchema.getEntries().size());
+        Assertions.assertEquals(Schema.Type.STRING, elementSchema.getEntry("ddd").getType());
+        Assertions.assertEquals(Schema.Type.STRING, elementSchema.getEntry("aaa").getType());
+        Assertions.assertEquals(Schema.Type.STRING, elementSchema.getEntry("bbb").getType());
+        Assertions.assertEquals(Schema.Type.DOUBLE, elementSchema.getEntry("ccc").getType());
     }
 
     @EnvironmentalTest
@@ -269,8 +292,12 @@ class JsonFormatTest {
                 .getArray(Object.class, "is_array_of_int")
                 .stream()
                 .collect(Collectors.toList());
-        Assertions.assertEquals(Double.class, is_array_of_int.get(2).getClass()); // must be instance of Double, not
-                                                                                  // BigInteger
+        Assertions.assertEquals(forceDouble ? Double.class : Long.class, is_array_of_int.get(2).getClass()); // must be
+                                                                                                             // instance
+                                                                                                             // of
+                                                                                                             // Double,
+                                                                                                             // not
+        // BigInteger
 
         final List<Object> is_array_of_double = record
                 .getArray(Object.class, "is_array_of_double")

@@ -12,8 +12,8 @@
  */
 package org.talend.components.common.stream.output.avro;
 
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
-import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
@@ -22,14 +22,14 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.stream.Collectors;
 
+import org.apache.avro.LogicalTypes;
 import org.apache.avro.generic.GenericData;
-import org.apache.avro.generic.GenericData.Array;
 import org.apache.avro.generic.GenericRecord;
 import org.talend.components.common.stream.AvroHelper;
 import org.talend.components.common.stream.api.output.RecordConverter;
+import org.talend.components.common.stream.Constants;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.record.Schema.Entry;
 
 public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.avro.Schema> {
 
@@ -72,6 +72,7 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
             final GenericRecord toRecord) {
         final String name = field.name();
         final org.apache.avro.Schema.Type fieldType = AvroHelper.getFieldType(field);
+        String logicalType = AvroHelper.getLogicalType(field);
         switch (fieldType) {
         case RECORD:
             final Record record = fromRecord.getRecord(name);
@@ -93,12 +94,44 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
             toRecord.put(name, fromRecord.getOptionalString(name).orElse(null));
             break;
         case BYTES:
-            final Optional<byte[]> optionalBytesValue = fromRecord.getOptionalBytes(name);
-            if (optionalBytesValue.isPresent()) {
-                ByteBuffer byteBuffer = ByteBuffer.wrap(fromRecord.getBytes(name));
-                toRecord.put(name, byteBuffer);
+        case FIXED:
+            if (Constants.AVRO_LOGICAL_TYPE_DECIMAL.equals(logicalType)) {
+                final Optional<String> optionalStringValue = fromRecord.getOptionalString(name);
+                if (optionalStringValue.isPresent()) {
+                    org.apache.avro.Schema fieldSchema = AvroHelper.nonNullableType(field.schema());
+                    BigDecimal bigDecimal = new BigDecimal(optionalStringValue.get())
+                            .setScale(
+                                    ((LogicalTypes.Decimal) fieldSchema.getLogicalType())
+                                            .getScale(),
+                                    BigDecimal.ROUND_HALF_UP);
+                    if (org.apache.avro.Schema.Type.BYTES.equals(fieldType)) {
+                        ByteBuffer byteBuffer = ByteBuffer.wrap(bigDecimal.unscaledValue().toByteArray());
+                        toRecord.put(name, byteBuffer);
+                    } else {
+                        byte fillByte = (byte) (bigDecimal.signum() < 0 ? 0xFF : 0x00);
+                        byte[] unscaled = bigDecimal.unscaledValue().toByteArray();
+                        byte[] bytes = new byte[fieldSchema.getFixedSize()];
+                        int offset = bytes.length - unscaled.length;
+                        for (int i = 0; i < bytes.length; i += 1) {
+                            if (i < offset) {
+                                bytes[i] = fillByte;
+                            } else {
+                                bytes[i] = unscaled[i - offset];
+                            }
+                        }
+                        toRecord.put(name, new GenericData.Fixed(fieldSchema, bytes));
+                    }
+                } else {
+                    toRecord.put(name, null);
+                }
             } else {
-                toRecord.put(name, null);
+                final Optional<byte[]> optionalBytesValue = fromRecord.getOptionalBytes(name);
+                if (optionalBytesValue.isPresent()) {
+                    ByteBuffer byteBuffer = ByteBuffer.wrap(fromRecord.getBytes(name));
+                    toRecord.put(name, byteBuffer);
+                } else {
+                    toRecord.put(name, null);
+                }
             }
             break;
         case INT:
@@ -153,14 +186,14 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
         final Collection<?> avroValues;
         final Object firstArrayValue = values.iterator().next();
         if (firstArrayValue instanceof Record) {
-            final org.apache.avro.Schema subSchema = AvroHelper.getUnionSchema(schema).getElementType();
+            final org.apache.avro.Schema subSchema = AvroHelper.nonNullableType(schema).getElementType();
             avroValues = values
                     .stream()
-                    .map(o -> this.recordToAvro((Record) o, this.newAvroRecord(subSchema)))
+                    .map(o -> o == null ? null : this.recordToAvro((Record) o, this.newAvroRecord(subSchema)))
                     .collect(Collectors.toList());
 
         } else if (firstArrayValue instanceof Collection) {
-            final org.apache.avro.Schema elementType = AvroHelper.getUnionSchema(schema).getElementType();
+            final org.apache.avro.Schema elementType = AvroHelper.nonNullableType(schema).getElementType();
             avroValues = values.stream()
                     .map(Collection.class::cast)
                     .map((Collection subValues) -> this.treatCollection(elementType, subValues))
@@ -172,25 +205,8 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
     }
 
     private GenericData.Record newAvroRecord(final org.apache.avro.Schema schema) {
-        final org.apache.avro.Schema simpleSchema = this.extractSimpleType(schema);
+        final org.apache.avro.Schema simpleSchema = AvroHelper.nonNullableType(schema);
         return new GenericData.Record(simpleSchema);
-    }
-
-    private org.apache.avro.Schema extractSimpleType(final org.apache.avro.Schema schema) {
-        if (!org.apache.avro.Schema.Type.UNION.equals(schema.getType())) {
-            return schema;
-        }
-        return schema.getTypes()
-                .stream()
-                .filter((org.apache.avro.Schema sub) -> !(org.apache.avro.Schema.Type.NULL.equals(sub.getType())))
-                .map((org.apache.avro.Schema sub) -> {
-                    if (org.apache.avro.Schema.Type.UNION.equals(sub.getType())) {
-                        return extractSimpleType(sub);
-                    }
-                    return sub;
-                })
-                .findFirst()
-                .orElse(null);
     }
 
     /**
@@ -205,38 +221,4 @@ public class RecordToAvro implements RecordConverter<GenericRecord, org.apache.a
         return schemaToAvro.fromRecordSchema(null, schema);
     }
 
-    private Entry getEntry(String name, Schema schema) {
-        for (Entry e : schema.getEntries()) {
-            if (name.equals(e.getName())) {
-                return e;
-            }
-        }
-        return null;
-    }
-
-    private Class<?> getJavaClassForType(final Schema.Type type) {
-        switch (type) {
-        case RECORD:
-            return Record.class;
-        case ARRAY:
-            return Array.class;
-        case STRING:
-            return String.class;
-        case BYTES:
-            return Byte[].class;
-        case INT:
-            return Integer.class;
-        case LONG:
-            return Long.class;
-        case FLOAT:
-            return Float.class;
-        case DOUBLE:
-            return Double.class;
-        case BOOLEAN:
-            return Boolean.class;
-        case DATETIME:
-            return ZonedDateTime.class;
-        }
-        return Object.class;
-    }
 }

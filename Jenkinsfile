@@ -38,8 +38,8 @@ String extraBuildParams = ''
 
 final String podLabel = "connectors-se-${UUID.randomUUID().toString()}".take(53)
 
-final String tsbiImage = 'jdk8-svc-springboot-builder'
-final String tsbiVersion = '2.9.0-2.3-20210907155713'
+final String tsbiImage = 'jdk11-svc-springboot-builder'
+final String tsbiVersion = '2.9.18-2.4-20220104141654'
 
 pipeline {
     agent {

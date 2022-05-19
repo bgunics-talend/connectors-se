@@ -15,6 +15,7 @@ package org.talend.components.common.stream.input.avro;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.util.Collection;
 import java.util.Iterator;
 
 import org.junit.jupiter.api.Assertions;
@@ -68,6 +69,32 @@ class AvroReaderTest {
 
             Assertions.assertEquals("test", rec2.getString("stringValue"));
             Assertions.assertEquals(true, rec4.getBoolean("booleanValue"));
+        }
+    }
+
+    /**
+     * When some avro arrays contains null elements.
+     * @throws IOException : if can't read file.
+     */
+    @Test
+    public void readArraysWithNullElements() throws IOException {
+
+        try (AvroReader reader = new AvroReader(toRecord);
+                InputStream in =
+                        Thread.currentThread().getContextClassLoader().getResourceAsStream("arrays.avro")) {
+            final Iterator<Record> iterator = reader.read(in);
+
+            for (int i = 0; i < 10; i++) {
+                Assertions.assertTrue(iterator.hasNext());
+            }
+            final Record rec1 = this.assertNext(iterator);
+
+            final Collection<String> xx = rec1.getArray(String.class, "xx");
+            Assertions.assertEquals(2, xx.size());
+
+            final Collection<String> inners = rec1.getArray(String.class, "arrayOfRecord");
+            Assertions.assertEquals(3, inners.size());
+            Assertions.assertFalse(iterator.hasNext());
         }
     }
 

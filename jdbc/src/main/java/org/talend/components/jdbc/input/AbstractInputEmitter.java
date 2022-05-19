@@ -27,7 +27,11 @@ import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.jooq.impl.DSL;
+import org.jooq.impl.DefaultConfiguration;
+import org.jooq.impl.ParserException;
 import org.talend.components.jdbc.configuration.InputConfig;
+import org.talend.components.jdbc.dataset.BaseDataSet;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
 import org.talend.sdk.component.api.input.Producer;
@@ -70,21 +74,26 @@ public abstract class AbstractInputEmitter implements Serializable {
 
     @PostConstruct
     public void init() {
-        String query = inputConfig.getDataSet()
-                .getQuery(
-                        jdbcDriversService.getPlatformService().getPlatform(inputConfig.getDataSet().getConnection()));
+        BaseDataSet dataSet = inputConfig.getDataSet();
+        String query = dataSet.getQuery(
+                jdbcDriversService.getPlatformService().getPlatform(dataSet.getConnection()));
         if (query == null || query.trim().isEmpty()) {
             throw new IllegalArgumentException(i18n.errorEmptyQuery());
         }
-        if (jdbcDriversService.isNotReadOnlySQLQuery(query)) {
+        try {
+            if (jdbcDriversService.isNotReadOnlySQLQuery(query) ||
+                    DSL.using(new DefaultConfiguration()).parser().parse(query).queries().length > 1) {
+                throw new IllegalArgumentException(i18n.errorUnauthorizedQuery());
+            }
+        } catch (ParserException e) {
             throw new IllegalArgumentException(i18n.errorUnauthorizedQuery());
         }
 
         try {
-            dataSource = jdbcDriversService.createDataSource(inputConfig.getDataSet().getConnection());
+            dataSource = jdbcDriversService.createDataSource(dataSet.getConnection());
             connection = dataSource.getConnection();
             statement = connection.createStatement();
-            statement.setFetchSize(inputConfig.getDataSet().getFetchSize());
+            statement.setFetchSize(dataSet.getFetchSize());
             resultSet = statement.executeQuery(query);
 
             ResultSetMetaData metaData = resultSet.getMetaData();

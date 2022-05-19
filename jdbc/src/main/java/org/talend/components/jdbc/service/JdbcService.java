@@ -167,7 +167,7 @@ public class JdbcService {
                 String missingJars = driver
                         .getPaths()
                         .stream()
-                        .filter(p -> classLoaderDescriptor.resolvedDependencies().contains(p))
+                        .filter(p -> !classLoaderDescriptor.resolvedDependencies().contains(p))
                         .collect(joining("\n"));
                 throw new IllegalStateException(i18n.errorDriverLoad(driverId, missingJars));
             }

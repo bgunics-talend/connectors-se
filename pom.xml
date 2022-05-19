@@ -18,7 +18,7 @@
 
     <groupId>org.talend.components</groupId>
     <artifactId>connectors-se</artifactId>
-    <version>1.32.0-SNAPSHOT</version>
+    <version>1.34.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Connectors SE</name>
@@ -73,27 +73,25 @@
     </distributionManagement>
 
     <properties>
-        <!-- Why do you have those properties and we don't simply use ${project.version} ? -->
-        <connectors-test-bom.version>1.32.0-SNAPSHOT</connectors-test-bom.version>
-        <common.version>1.32.0-SNAPSHOT</common.version>
-
         <timestamp.year>${maven.build.timestamp}</timestamp.year>
         <maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <locales.version>[1.31,)</locales.version>
+        <locales.version>[1.32,)</locales.version>
 
-        <component-runtime.version>1.43.0</component-runtime.version>
-        <slf4j.version>1.7.28</slf4j.version>
+        <component-runtime.version>1.44.3</component-runtime.version>
+        <slf4j.version>1.7.36</slf4j.version>
         <log4j-api.version>2.17.1</log4j-api.version>
-        <log4j1.version>1.2.17</log4j1.version>
+        <reload4j.version>1.2.19</reload4j.version>
+        
         <beanutils.version>1.9.4</beanutils.version>
 
         <beam.version>2.36.0</beam.version>
         <spark.version>3.2.0</spark.version>
         <shrinkwrap.version>3.1.4</shrinkwrap.version>
         <avro.version>1.8.2</avro.version>
-        <jackson.version>2.12.4</jackson.version>
+        <jackson.version>2.13.2</jackson.version>
+        <jackson-databind.version>2.13.2.2</jackson-databind.version>
         <jackson-codehaus.version>1.9.16-TALEND</jackson-codehaus.version>
 
         <jsoup.version>1.14.3</jsoup.version>
@@ -102,7 +100,7 @@
         <tcomp0.version>0.23.2</tcomp0.version> <!-- until they are rewritten -->
         <daikon.version>0.31.0</daikon.version>
 
-        <junit5.version>5.8.1</junit5.version>
+        <junit5.version>5.8.2</junit5.version>
         <surefire.version>3.0.0-M3</surefire.version>
         <maven.enforcer.version>3.0.0-M3</maven.enforcer.version>
         <jacoco.version>0.8.2</jacoco.version>
@@ -115,7 +113,7 @@
         <commons-codec.version>1.14</commons-codec.version>
         <commons-io.version>2.8.0</commons-io.version>
         <mockito.version>1.10.19</mockito.version>
-        <testcontainers.version>1.15.1</testcontainers.version>
+        <testcontainers.version>1.17.1</testcontainers.version>
         <jna.version>5.5.0</jna.version>
 
         <jersey.version>2.22.2</jersey.version>
@@ -138,14 +136,14 @@
         <xtm.api.url>https://www.xtm-cloud.com/rest-api</xtm.api.url>
 
         <!-- CVE fix -->
-        <netty-codec.version>4.1.68.Final</netty-codec.version>
-        <netty-tcnative-boringssl-static.version>2.0.46.Final</netty-tcnative-boringssl-static.version>
+        <netty4.version>4.1.75.Final</netty4.version>
+        <netty-tcnative-boringssl-static.version>2.0.51.Final</netty-tcnative-boringssl-static.version>
 
         <jetty.version>9.4.38.v20210224</jetty.version>
         <nimbus-jose-jwt.version>8.11</nimbus-jose-jwt.version>
         <zookeeper.version>3.4.14</zookeeper.version>
         <guava.version>30.0-jre</guava.version>
-        <hadoop.version>3.2.2</hadoop.version>
+        <hadoop.version>3.2.3</hadoop.version>
         <axis2.version>1.8.0</axis2.version>
 
         <!-- code quality enforcer default values.
@@ -172,14 +170,35 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-simple</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <!-- slf4j-reload4j contains as transitive dependency reload4j -->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-reload4j</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-api</artifactId>
                 <version>${log4j-api.version}</version>
             </dependency>
             <dependency>
-                <groupId>log4j</groupId>
-                <artifactId>log4j</artifactId>
-                <version>${log4j1.version}</version>
+                <groupId>ch.qos.reload4j</groupId>
+                <artifactId>reload4j</artifactId>
+                <version>${reload4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.google.code.findbugs</groupId>
@@ -225,7 +244,7 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
+                <version>${jackson-databind.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -305,7 +324,7 @@
             <dependency>
                 <groupId>org.talend.components</groupId>
                 <artifactId>common</artifactId>
-                <version>${common.version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>
@@ -320,22 +339,22 @@
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-codec-http2</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-codec</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-handler</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
@@ -345,56 +364,67 @@
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-handler-proxy</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-buffer</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-codec-http</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-transport-native-epoll</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-transport-native-epoll</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
                 <classifier>linux-x86_64</classifier>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-transport-native-epoll</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
                 <classifier>linux-aarch_64</classifier>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-transport-native-kqueue</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-transport-native-kqueue</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
                 <classifier>osx-x86_64</classifier>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-transport-native-kqueue</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
                 <classifier>osx-aarch_64</classifier>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-transport-native-unix-common</artifactId>
-                <version>${netty-codec.version}</version>
+                <version>${netty4.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-resolver-dns</artifactId>
+                <version>${netty4.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-resolver-dns-native-macos</artifactId>
+                <version>${netty4.version}</version>
+                <classifier>osx-x86_64</classifier>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
@@ -516,6 +546,12 @@
                 <groupId>org.apache.spark</groupId>
                 <artifactId>spark-core_2.12</artifactId>
                 <version>${spark.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>log4j</groupId>
+                        <artifactId>log4j</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.spark</groupId>
@@ -536,6 +572,12 @@
                 <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-client</artifactId>
                 <version>${hadoop.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>log4j</groupId>
+                        <artifactId>log4j</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.axis2</groupId>
@@ -576,7 +618,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>1.7.28</version>
+            <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -1215,6 +1257,10 @@
         </profile>
         <profile>
             <id>DEPLOY</id>
+            <properties>
+                <skipTests>true</skipTests>
+                <enforcer.skip>true</enforcer.skip>
+            </properties>
         </profile>
         <profile>
             <id>DEPLOY_SNAPSHOT_AFTER_RELEASE</id>

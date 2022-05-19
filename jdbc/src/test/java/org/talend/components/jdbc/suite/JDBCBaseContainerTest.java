@@ -46,8 +46,8 @@ import java.util.Locale;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -74,7 +74,7 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
-import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
+import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public abstract class JDBCBaseContainerTest {
@@ -516,6 +516,31 @@ public abstract class JDBCBaseContainerTest {
             final SqlQueryDataset dataset = new SqlQueryDataset();
             dataset.setConnection(newConnection());
             dataset.setSqlQuery("INSERT INTO users(id, name) VALUES (1, 'user1')");
+            final InputQueryConfig config = new InputQueryConfig();
+            config.setDataSet(dataset);
+            final String configURI = configurationByExample().forInstance(config).configured().toQueryString();
+            assertThrows(IllegalArgumentException.class,
+                    () -> Job
+                            .components()
+                            .component("jdbcInput", "Jdbc://QueryInput?" + configURI)
+                            .component("collector", "test://collector")
+                            .connections()
+                            .from("jdbcInput")
+                            .to("collector")
+                            .build()
+                            .run());
+        }
+
+        @Test
+        @DisplayName("Query -  non authorized query (multiple queries)")
+        void unauthorizedMultipleQueries() {
+            final String MULTIPLE_QUERIES_TEMPLATE = "SELECT * FROM %s; SELECT * FROM %s";
+            final JdbcConnection connection = newConnection();
+            final Platform platform = getJdbcService().getPlatformService().getPlatform(connection);
+            final SqlQueryDataset dataset = new SqlQueryDataset();
+            dataset.setConnection(connection);
+            dataset.setSqlQuery(String.format(MULTIPLE_QUERIES_TEMPLATE,
+                    platform.identifier("table1"), platform.identifier("table2")));
             final InputQueryConfig config = new InputQueryConfig();
             config.setDataSet(dataset);
             final String configURI = configurationByExample().forInstance(config).configured().toQueryString();

@@ -14,6 +14,7 @@ package org.talend.components.common.stream.format.json;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 import javax.json.JsonValue;
 import javax.json.stream.JsonParser;
@@ -106,6 +107,9 @@ public class JsonPointerParser {
 
         @Override
         public JsonValue next() {
+            if (!this.hasNext()) {
+                throw new NoSuchElementException("End of Json Iterator reached");
+            }
             final JsonValue result = this.current;
             this.current = this.findNext(parser);
             return result;

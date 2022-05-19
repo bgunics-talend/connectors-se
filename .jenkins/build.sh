@@ -26,7 +26,7 @@ main() (
   mvn "${mavenPhase}" \
       --errors \
       --batch-mode \
-      --threads '1C' \
+      --fail-at-end \
       --activate-profiles "${jenkinsAction},ITs" \
       "${extraBuildParams[@]}"
 

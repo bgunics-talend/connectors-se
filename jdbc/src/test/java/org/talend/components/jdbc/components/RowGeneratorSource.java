@@ -12,21 +12,6 @@
  */
 package org.talend.components.jdbc.components;
 
-import lombok.Data;
-import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.input.Producer;
-import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-import org.testcontainers.shaded.org.apache.commons.lang.RandomStringUtils;
-
-import javax.annotation.PostConstruct;
-import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import static java.util.Optional.ofNullable;
 import static org.talend.sdk.component.api.record.Schema.Type.BOOLEAN;
 import static org.talend.sdk.component.api.record.Schema.Type.BYTES;
@@ -36,6 +21,23 @@ import static org.talend.sdk.component.api.record.Schema.Type.FLOAT;
 import static org.talend.sdk.component.api.record.Schema.Type.INT;
 import static org.talend.sdk.component.api.record.Schema.Type.LONG;
 import static org.talend.sdk.component.api.record.Schema.Type.STRING;
+
+import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import javax.annotation.PostConstruct;
+
+import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.input.Producer;
+import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
+
+import lombok.Data;
 
 public class RowGeneratorSource implements Serializable {
 

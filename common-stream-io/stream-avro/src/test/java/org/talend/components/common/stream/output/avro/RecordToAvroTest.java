@@ -14,7 +14,11 @@ package org.talend.components.common.stream.output.avro;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.talend.components.common.stream.Constants.*;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -46,6 +50,8 @@ class RecordToAvroTest {
     protected Record versatileRecord;
 
     protected Record complexRecord;
+
+    private Record decimalRecord;
 
     private RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
 
@@ -170,6 +176,20 @@ class RecordToAvroTest {
                 record.get("datetime"));
         assertEquals(20.5f, record.get("float"));
         assertEquals(20.5, record.get("double"));
+    }
+
+    @Test
+    void testFromDecimalRecord() {
+        final RecordToAvro converter = new RecordToAvro("test");
+        final GenericRecord record = converter.fromRecord(decimalRecord);
+        assertNotNull(record);
+        assertEquals("DecimalR", record.get("name"));
+        GenericData.Fixed value = (GenericData.Fixed) record.get("big_decimal");
+        BigDecimal bd = new BigDecimal(new BigInteger(value.bytes()), 5);
+        assertEquals(new BigDecimal("12345.67890"), bd);
+
+        assertEquals(Arrays.asList(new BigDecimal("12.34567"), new BigDecimal("21.76543")),
+                decimalRecord.getArray(BigDecimal.class, "decimal_array"));
     }
 
     @Test
@@ -350,6 +370,29 @@ class RecordToAvroTest {
                 .withRecord(er, versatileRecord) //
                 .withDateTime("now", now) //
                 .withArray(ea, Arrays.asList("ary1", "ary2", "ary3"))
+                .build();
+        Entry decimalArray = factory
+                .newEntryBuilder()
+                .withName("decimal_array")
+                .withType(Type.ARRAY)
+                .withElementSchema(factory.newSchemaBuilder(Type.ARRAY)
+                        .withType(Type.STRING)
+                        .withProp(STUDIO_TYPE, "id_BigDecimal")
+                        .withProp(STUDIO_LENGTH, "10")
+                        .withProp(STUDIO_PRECISION, "5")
+                        .build())
+                .build();
+        decimalRecord = factory
+                .newRecordBuilder() //
+                .withString("name", "DecimalR") //
+                .withString(factory.newEntryBuilder()
+                        .withName("big_decimal")
+                        .withType(Type.STRING)
+                        .withProp(STUDIO_TYPE, "id_BigDecimal")
+                        .withProp(STUDIO_LENGTH, "10")
+                        .withProp(STUDIO_PRECISION, "5")
+                        .build(), "12345.67890")
+                .withArray(decimalArray, Arrays.asList(new BigDecimal("12.34567"), new BigDecimal("21.76543")))
                 .build();
     }
 

@@ -12,6 +12,7 @@
  */
 package org.talend.components.common.stream.output.json;
 
+import java.nio.charset.Charset;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 
@@ -91,7 +92,7 @@ public class RecordToJson implements RecordConverter<JsonObject, Void> {
         return array.build();
     }
 
-    private void addField(JsonObjectBuilder json, Record record, Entry entry) {
+    private void addField(final JsonObjectBuilder json, final Record record, final Entry entry) {
         final String fieldName = entry.getName();
         switch (entry.getType()) {
         case RECORD:
@@ -107,7 +108,7 @@ public class RecordToJson implements RecordConverter<JsonObject, Void> {
             json.add(fieldName, record.getString(fieldName));
             break;
         case BYTES:
-            json.add(fieldName, new String(record.getBytes(fieldName)));
+            json.add(fieldName, new String(record.getBytes(fieldName), Charset.defaultCharset()));
             break;
         case INT:
             json.add(fieldName, record.getInt(fieldName));
@@ -132,6 +133,8 @@ public class RecordToJson implements RecordConverter<JsonObject, Void> {
                 json.addNull(fieldName);
             }
             break;
+        default:
+            log.warn("Unexpected TCK type for entry " + entry.getType());
         }
     }
 

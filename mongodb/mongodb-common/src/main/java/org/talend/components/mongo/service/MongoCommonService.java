@@ -176,7 +176,7 @@ public class MongoCommonService {
         }
     }
 
-    private Document getDatabaseStats(MongoDatabase database) {
+    public Document getDatabaseStats(MongoDatabase database) {
         BsonDocument commandDocument =
                 (new BsonDocument("dbStats", new BsonInt32(1))).append("scale", new BsonInt32(1));
         return database.runCommand(commandDocument);

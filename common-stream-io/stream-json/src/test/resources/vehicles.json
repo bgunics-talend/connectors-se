@@ -1,0 +1,676 @@
+{
+  "currentPage" : 1,
+  "pageSize" : 100,
+  "totalRecords" : 510,
+  "vehicles" : [ {
+    "vehicleId" : 6000230865,
+    "location" : {
+      "latitude" : 40.736000061035156,
+      "longitude" : -73.5997085571289,
+      "trackPointId" : 20669971003,
+      "gpsDateTime" : "2021-11-03T15:45:52Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230867,
+    "location" : {
+      "latitude" : 40.72795867919922,
+      "longitude" : -73.6076431274414,
+      "trackPointId" : 20701550879,
+      "gpsDateTime" : "2021-10-20T22:35:33Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230868,
+    "location" : {
+      "latitude" : 40.72803,
+      "longitude" : -73.607118,
+      "trackPointId" : 20116498083,
+      "gpsDateTime" : "2021-10-20T22:09:04Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230869,
+    "location" : {
+      "latitude" : 40.73601150512695,
+      "longitude" : -73.59968566894531,
+      "trackPointId" : 20670171538,
+      "gpsDateTime" : "2021-11-03T15:49:42Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230871,
+    "location" : {
+      "latitude" : 40.72792434692383,
+      "longitude" : -73.60753631591797,
+      "trackPointId" : 20700548801,
+      "gpsDateTime" : "2021-10-20T22:20:35Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230872,
+    "location" : {
+      "latitude" : 40.73607635498047,
+      "longitude" : -73.5997085571289,
+      "trackPointId" : 20612687439,
+      "gpsDateTime" : "2021-11-02T13:30:44Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230873
+  }, {
+    "vehicleId" : 6000230874,
+    "location" : {
+      "latitude" : 40.72258758544922,
+      "longitude" : -73.64189910888672,
+      "trackPointId" : 20759030055,
+      "gpsDateTime" : "2021-11-05T11:36:28Z",
+      "direction" : 163.28,
+      "speed" : 6.463
+    }
+  }, {
+    "vehicleId" : 6000230875,
+    "location" : {
+      "latitude" : 40.68790054321289,
+      "longitude" : -73.61980438232422,
+      "trackPointId" : 20758993654,
+      "gpsDateTime" : "2021-11-05T11:35:37Z",
+      "direction" : 22.81,
+      "speed" : 13.849
+    }
+  }, {
+    "vehicleId" : 6000230876,
+    "location" : {
+      "latitude" : 40.73114776611328,
+      "longitude" : -73.45716857910156,
+      "trackPointId" : 20759007616,
+      "gpsDateTime" : "2021-11-05T11:35:59Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230877,
+    "location" : {
+      "latitude" : 40.68763732910156,
+      "longitude" : -73.70255279541016,
+      "trackPointId" : 20758992720,
+      "gpsDateTime" : "2021-11-05T11:35:35Z",
+      "direction" : 224.35,
+      "speed" : 4.186
+    }
+  }, {
+    "vehicleId" : 6000230878
+  }, {
+    "vehicleId" : 6000230879
+  }, {
+    "vehicleId" : 6000230880,
+    "location" : {
+      "latitude" : 40.8415412902832,
+      "longitude" : -73.70511627197266,
+      "trackPointId" : 20759011002,
+      "gpsDateTime" : "2021-11-05T11:36:07Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230881,
+    "location" : {
+      "latitude" : 40.735809326171875,
+      "longitude" : -73.59976196289062,
+      "trackPointId" : 20745454367,
+      "gpsDateTime" : "2021-11-05T01:58:06Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230882,
+    "location" : {
+      "latitude" : 40.73366165161133,
+      "longitude" : -73.53817749023438,
+      "trackPointId" : 20759001327,
+      "gpsDateTime" : "2021-11-05T11:35:44Z",
+      "direction" : 92.79,
+      "speed" : 12.154
+    }
+  }, {
+    "vehicleId" : 6000230883,
+    "location" : {
+      "latitude" : 40.70984649658203,
+      "longitude" : -73.61528778076172,
+      "trackPointId" : 20759001290,
+      "gpsDateTime" : "2021-11-05T11:35:50Z",
+      "direction" : 247.56,
+      "speed" : 2.777
+    }
+  }, {
+    "vehicleId" : 6000230884,
+    "location" : {
+      "latitude" : 40.734169006347656,
+      "longitude" : -73.60086822509766,
+      "trackPointId" : 20759012628,
+      "gpsDateTime" : "2021-11-05T11:36:09Z",
+      "direction" : 253.86,
+      "speed" : 14.234
+    }
+  }, {
+    "vehicleId" : 6000230885,
+    "location" : {
+      "latitude" : 40.73133850097656,
+      "longitude" : -73.57400512695312,
+      "trackPointId" : 20759011577,
+      "gpsDateTime" : "2021-11-05T11:35:59Z",
+      "direction" : 302.5,
+      "speed" : 13.481
+    }
+  }, {
+    "vehicleId" : 6000230886,
+    "location" : {
+      "latitude" : 40.75394821166992,
+      "longitude" : -73.58820343017578,
+      "trackPointId" : 20759007813,
+      "gpsDateTime" : "2021-11-05T11:35:57Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230887,
+    "location" : {
+      "latitude" : 40.688743591308594,
+      "longitude" : -73.59646606445312,
+      "trackPointId" : 20759008007,
+      "gpsDateTime" : "2021-11-05T11:35:56Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230888,
+    "location" : {
+      "latitude" : 40.82024002075195,
+      "longitude" : -73.40966033935547,
+      "trackPointId" : 20758658436,
+      "gpsDateTime" : "2021-11-05T11:27:15Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230889,
+    "location" : {
+      "latitude" : 40.74620819091797,
+      "longitude" : -73.59756469726562,
+      "trackPointId" : 20759010262,
+      "gpsDateTime" : "2021-11-05T11:36:04Z",
+      "direction" : 75.17,
+      "speed" : 5.629
+    }
+  }, {
+    "vehicleId" : 6000230890,
+    "location" : {
+      "latitude" : 40.7358512878418,
+      "longitude" : -73.59990692138672,
+      "trackPointId" : 20739289003,
+      "gpsDateTime" : "2021-11-04T22:14:59Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230891,
+    "location" : {
+      "latitude" : 40.64154815673828,
+      "longitude" : -73.61198425292969,
+      "trackPointId" : 20758819647,
+      "gpsDateTime" : "2021-11-05T11:31:20Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230892,
+    "location" : {
+      "latitude" : 40.73331069946289,
+      "longitude" : -73.60491180419922,
+      "trackPointId" : 20759000899,
+      "gpsDateTime" : "2021-11-05T11:35:44Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230893,
+    "location" : {
+      "latitude" : 40.735748291015625,
+      "longitude" : -73.5998764038086,
+      "trackPointId" : 20738621898,
+      "gpsDateTime" : "2021-11-04T21:57:18Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230894,
+    "location" : {
+      "latitude" : 40.73509979248047,
+      "longitude" : -73.59943389892578,
+      "trackPointId" : 20744497154,
+      "gpsDateTime" : "2021-11-05T01:12:12Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230895,
+    "location" : {
+      "latitude" : 40.73487091064453,
+      "longitude" : -73.59970092773438,
+      "trackPointId" : 20712930510,
+      "gpsDateTime" : "2021-11-04T13:10:31Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230896,
+    "location" : {
+      "latitude" : 40.735721588134766,
+      "longitude" : -73.59983825683594,
+      "trackPointId" : 20743984286,
+      "gpsDateTime" : "2021-11-05T00:49:49Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230897,
+    "location" : {
+      "latitude" : 40.73576354980469,
+      "longitude" : -73.59990692138672,
+      "trackPointId" : 20737896866,
+      "gpsDateTime" : "2021-11-04T21:38:58Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230898
+  }, {
+    "vehicleId" : 6000230899,
+    "location" : {
+      "latitude" : 40.69138717651367,
+      "longitude" : -73.53913879394531,
+      "trackPointId" : 20758978462,
+      "gpsDateTime" : "2021-11-05T11:31:52Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230900,
+    "location" : {
+      "latitude" : 40.743995666503906,
+      "longitude" : -73.49983215332031,
+      "trackPointId" : 20445942619,
+      "gpsDateTime" : "2021-10-28T17:55:40Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230901,
+    "location" : {
+      "latitude" : 40.736052,
+      "longitude" : -73.599932,
+      "trackPointId" : 19628084096,
+      "gpsDateTime" : "2021-10-08T18:40:53Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230902,
+    "location" : {
+      "latitude" : 40.73532485961914,
+      "longitude" : -73.59944915771484,
+      "trackPointId" : 20758995600,
+      "gpsDateTime" : "2021-11-05T11:35:45Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230903,
+    "location" : {
+      "latitude" : 40.70803451538086,
+      "longitude" : -73.62567901611328,
+      "trackPointId" : 20759006905,
+      "gpsDateTime" : "2021-11-05T11:35:53Z",
+      "direction" : 251.48,
+      "speed" : 10.481
+    }
+  }, {
+    "vehicleId" : 6000230904,
+    "location" : {
+      "latitude" : 40.717323303222656,
+      "longitude" : -73.59403228759766,
+      "trackPointId" : 20759031018,
+      "gpsDateTime" : "2021-11-05T11:36:33Z",
+      "direction" : 351.02,
+      "speed" : 7.636
+    }
+  }, {
+    "vehicleId" : 6000230905,
+    "location" : {
+      "latitude" : 40.73560333251953,
+      "longitude" : -73.59949493408203,
+      "trackPointId" : 20624389179,
+      "gpsDateTime" : "2021-11-02T17:23:53Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230906,
+    "location" : {
+      "latitude" : 40.678401947021484,
+      "longitude" : -73.6362075805664,
+      "trackPointId" : 20758917910,
+      "gpsDateTime" : "2021-11-05T11:33:43Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230907,
+    "location" : {
+      "latitude" : 40.7031364440918,
+      "longitude" : -73.48470306396484,
+      "trackPointId" : 20759019781,
+      "gpsDateTime" : "2021-11-05T11:36:17Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230908,
+    "location" : {
+      "latitude" : 40.73585510253906,
+      "longitude" : -73.59968566894531,
+      "trackPointId" : 20747795582,
+      "gpsDateTime" : "2021-11-05T03:55:30Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230909,
+    "location" : {
+      "latitude" : 40.695743560791016,
+      "longitude" : -73.49507904052734,
+      "trackPointId" : 20758982936,
+      "gpsDateTime" : "2021-11-05T11:35:17Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230910
+  }, {
+    "vehicleId" : 6000230912,
+    "location" : {
+      "latitude" : 40.73586654663086,
+      "longitude" : -73.59967041015625,
+      "trackPointId" : 20744878237,
+      "gpsDateTime" : "2021-11-05T01:29:59Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230913,
+    "location" : {
+      "latitude" : 40.735802,
+      "longitude" : -73.599586,
+      "trackPointId" : 19275333624,
+      "gpsDateTime" : "2021-09-30T13:29:57Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230914
+  }, {
+    "vehicleId" : 6000230915,
+    "vin" : "1FTBW3XV5GKB23138"
+  }, {
+    "vehicleId" : 6000230916,
+    "location" : {
+      "latitude" : 40.735782623291016,
+      "longitude" : -73.59960174560547,
+      "trackPointId" : 20739391727,
+      "gpsDateTime" : "2021-11-04T22:17:49Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230917,
+    "location" : {
+      "latitude" : 40.73480224609375,
+      "longitude" : -73.59974670410156,
+      "trackPointId" : 20748863801,
+      "gpsDateTime" : "2021-11-05T04:59:11Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230918
+  }, {
+    "vehicleId" : 6000230919
+  }, {
+    "vehicleId" : 6000230920,
+    "location" : {
+      "latitude" : 40.735168,
+      "longitude" : -73.599522,
+      "trackPointId" : 19389932884,
+      "gpsDateTime" : "2021-10-03T16:31:48Z",
+      "direction" : 156.95,
+      "speed" : 2.526
+    }
+  }, {
+    "vehicleId" : 6000230921,
+    "location" : {
+      "latitude" : 40.73577117919922,
+      "longitude" : -73.599609375,
+      "trackPointId" : 20744702917,
+      "gpsDateTime" : "2021-11-05T01:21:47Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230922
+  }, {
+    "vehicleId" : 6000230923,
+    "location" : {
+      "latitude" : 40.74544143676758,
+      "longitude" : -73.50102996826172,
+      "trackPointId" : 20758933107,
+      "gpsDateTime" : "2021-11-05T11:34:12Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230924
+  }, {
+    "vehicleId" : 6000230925,
+    "location" : {
+      "latitude" : 40.735923767089844,
+      "longitude" : -73.59969329833984,
+      "trackPointId" : 20741673907,
+      "gpsDateTime" : "2021-11-04T23:25:09Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230926,
+    "location" : {
+      "latitude" : 40.735958099365234,
+      "longitude" : -73.5999526977539,
+      "trackPointId" : 20503571132,
+      "gpsDateTime" : "2021-10-29T21:44:18Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230927,
+    "location" : {
+      "latitude" : 40.73565673828125,
+      "longitude" : -73.59999084472656,
+      "trackPointId" : 20610534688,
+      "gpsDateTime" : "2021-11-02T12:46:29Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230928
+  }, {
+    "vehicleId" : 6000230929,
+    "location" : {
+      "latitude" : 40.735597,
+      "longitude" : -73.59999,
+      "trackPointId" : 19972956726,
+      "gpsDateTime" : "2021-10-17T22:19:45Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230930,
+    "location" : {
+      "latitude" : 40.73557,
+      "longitude" : -73.59996,
+      "trackPointId" : 19565222813,
+      "gpsDateTime" : "2021-10-07T14:30:29Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230931
+  }, {
+    "vehicleId" : 6000230932,
+    "vin" : "1FTBW3XVXGKB23152",
+    "location" : {
+      "latitude" : 40.749542236328125,
+      "longitude" : -73.51859283447266,
+      "trackPointId" : 20759029406,
+      "gpsDateTime" : "2021-11-05T11:36:35Z",
+      "direction" : 161.8,
+      "speed" : 9.445
+    }
+  }, {
+    "vehicleId" : 6000230933
+  }, {
+    "vehicleId" : 6000230934
+  }, {
+    "vehicleId" : 6000230935
+  }, {
+    "vehicleId" : 6000230936
+  }, {
+    "vehicleId" : 6000230937
+  }, {
+    "vehicleId" : 6000230938
+  }, {
+    "vehicleId" : 6000230939
+  }, {
+    "vehicleId" : 6000230940
+  }, {
+    "vehicleId" : 6000230941
+  }, {
+    "vehicleId" : 6000230942
+  }, {
+    "vehicleId" : 6000230943
+  }, {
+    "vehicleId" : 6000230944
+  }, {
+    "vehicleId" : 6000230945
+  }, {
+    "vehicleId" : 6000230946
+  }, {
+    "vehicleId" : 6000230947,
+    "location" : {
+      "latitude" : 40.7356071472168,
+      "longitude" : -73.5995101928711,
+      "trackPointId" : 20726901590,
+      "gpsDateTime" : "2021-11-04T17:46:14Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230948
+  }, {
+    "vehicleId" : 6000230949,
+    "location" : {
+      "latitude" : 40.73563766479492,
+      "longitude" : -73.59951782226562,
+      "trackPointId" : 20735436370,
+      "gpsDateTime" : "2021-11-04T20:42:15Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230950,
+    "location" : {
+      "latitude" : 40.6920051574707,
+      "longitude" : -73.65039825439453,
+      "trackPointId" : 20758996906,
+      "gpsDateTime" : "2021-11-05T11:35:42Z",
+      "direction" : 197.0,
+      "speed" : 12.576
+    }
+  }, {
+    "vehicleId" : 6000230951,
+    "location" : {
+      "latitude" : 40.7352294921875,
+      "longitude" : -73.59954833984375,
+      "trackPointId" : 20756960601,
+      "gpsDateTime" : "2021-11-05T10:41:56Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230952
+  }, {
+    "vehicleId" : 6000230953,
+    "location" : {
+      "latitude" : 40.67400360107422,
+      "longitude" : -73.43226623535156,
+      "trackPointId" : 20759010484,
+      "gpsDateTime" : "2021-11-05T11:35:58Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230954
+  }, {
+    "vehicleId" : 6000230955,
+    "location" : {
+      "latitude" : 40.735225677490234,
+      "longitude" : -73.5997314453125,
+      "trackPointId" : 20748452263,
+      "gpsDateTime" : "2021-11-05T04:34:26Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230956
+  }, {
+    "vehicleId" : 6000230957,
+    "location" : {
+      "latitude" : 40.7354736328125,
+      "longitude" : -73.59976959228516,
+      "trackPointId" : 20715513504,
+      "gpsDateTime" : "2021-11-04T14:02:25Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230958
+  }, {
+    "vehicleId" : 6000230959,
+    "location" : {
+      "latitude" : 40.73514175415039,
+      "longitude" : -73.59949493408203,
+      "trackPointId" : 20746034640,
+      "gpsDateTime" : "2021-11-05T02:17:30Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230960
+  }, {
+    "vehicleId" : 6000230961
+  }, {
+    "vehicleId" : 6000230962,
+    "location" : {
+      "latitude" : 40.735164642333984,
+      "longitude" : -73.59955596923828,
+      "trackPointId" : 20738514607,
+      "gpsDateTime" : "2021-11-04T21:54:46Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230963,
+    "location" : {
+      "latitude" : 40.73518753051758,
+      "longitude" : -73.59954833984375,
+      "trackPointId" : 20748969163,
+      "gpsDateTime" : "2021-11-05T05:05:35Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230964,
+    "location" : {
+      "latitude" : 40.70778274536133,
+      "longitude" : -73.70965576171875,
+      "trackPointId" : 20759027765,
+      "gpsDateTime" : "2021-11-05T11:36:24Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230965
+  }, {
+    "vehicleId" : 6000230966,
+    "location" : {
+      "latitude" : 40.73538589477539,
+      "longitude" : -73.59998321533203,
+      "trackPointId" : 20746007100,
+      "gpsDateTime" : "2021-11-05T02:16:05Z",
+      "speed" : 0.0
+    }
+  }, {
+    "vehicleId" : 6000230967,
+    "location" : {
+      "latitude" : 40.660030364990234,
+      "longitude" : -73.63045501708984,
+      "trackPointId" : 20759015778,
+      "gpsDateTime" : "2021-11-05T11:36:13Z",
+      "speed" : 0.0
+    }
+  } ]
+}

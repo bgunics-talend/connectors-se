@@ -17,6 +17,8 @@ import java.io.Serializable;
 import org.talend.components.salesforce.dataset.ModuleDataSet;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.constraint.Max;
+import org.talend.sdk.component.api.configuration.constraint.Min;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -54,6 +56,17 @@ public class OutputConfig implements Serializable {
     @Documentation("whether use batch operation")
     private boolean batchMode = true;
 
+    /**
+     * In a single insert, update, upsert, or delete operation, records moving to or from Salesforce are processed in
+     * increments of this size. The maximum value is 200. Salesforce team recommend a value between 50 and 100.
+     *
+     * The maximum value is 10,000 if the Use Bulk API option is selected.
+     * Please refer the below link for more information
+     *
+     * https://help.salesforce.com/HTViewHelpDoc?id=configuring_the_data_loader.htm&language=en_US
+     */
+    @Min(1)
+    @Max(200)
     @Option
     @ActiveIf(target = "batchMode", value = "true")
     @Documentation("max size of batch")

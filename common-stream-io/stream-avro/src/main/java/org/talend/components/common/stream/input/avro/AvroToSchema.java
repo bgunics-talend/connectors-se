@@ -12,7 +12,11 @@
  */
 package org.talend.components.common.stream.input.avro;
 
+import static org.talend.components.common.stream.Constants.BIGDECIMAL;
+
+import org.apache.avro.LogicalTypes;
 import org.talend.components.common.stream.AvroHelper;
+import org.talend.components.common.stream.Constants;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
@@ -41,7 +45,7 @@ public class AvroToSchema {
             builder.withType(Schema.Type.RECORD);
             //
             final Schema.Builder subBuilder = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
-            org.apache.avro.Schema extractedSchema = AvroHelper.getUnionSchema(field.schema());
+            org.apache.avro.Schema extractedSchema = AvroHelper.nonNullableType(field.schema());
             extractedSchema.getFields().stream().map(this::inferAvroField).forEach(subBuilder::withEntry);
             builder.withElementSchema(subBuilder.build());
         }
@@ -50,7 +54,7 @@ public class AvroToSchema {
         case ARRAY:
             builder.withType(Schema.Type.ARRAY);
             org.apache.avro.Schema extractedSchema = AvroHelper
-                    .getUnionSchema(AvroHelper.getUnionSchema(field.schema()).getElementType());
+                    .nonNullableType(AvroHelper.nonNullableType(field.schema()).getElementType());
             final Schema innerSchema = this.inferInnerSchema(extractedSchema);
             builder.withElementSchema(innerSchema);
 
@@ -64,12 +68,24 @@ public class AvroToSchema {
                 break;
             }
         case STRING:
-        case BYTES:
         case FLOAT:
         case DOUBLE:
         case BOOLEAN:
         case NULL:
             builder.withType(translateToRecordType(type));
+            break;
+        case BYTES:
+        case FIXED:
+            if (Constants.AVRO_LOGICAL_TYPE_DECIMAL.equals(logicalType)) {
+                LogicalTypes.Decimal decimalType =
+                        ((LogicalTypes.Decimal) AvroHelper.nonNullableType(field.schema()).getLogicalType());
+                builder.withType(Schema.Type.STRING)
+                        .withProp(Constants.STUDIO_TYPE, BIGDECIMAL)
+                        .withProp(Constants.STUDIO_LENGTH, String.valueOf(decimalType.getPrecision()))
+                        .withProp(Constants.STUDIO_PRECISION, String.valueOf(decimalType.getScale()));
+            } else {
+                builder.withType(Schema.Type.BYTES);
+            }
             break;
         default:
             break;
@@ -95,7 +111,7 @@ public class AvroToSchema {
                     .forEach(schemaBuilder::withEntry);
         } else if (toType == Schema.Type.ARRAY) {
             final org.apache.avro.Schema elementType = schema.getElementType();
-            final Schema innerSchema = this.inferInnerSchema(AvroHelper.getUnionSchema(elementType));
+            final Schema innerSchema = this.inferInnerSchema(AvroHelper.nonNullableType(elementType));
             schemaBuilder.withElementSchema(innerSchema);
         }
 
@@ -111,6 +127,7 @@ public class AvroToSchema {
         case STRING:
             return Schema.Type.STRING;
         case BYTES:
+        case FIXED:
             return Schema.Type.BYTES;
         case INT:
             return Schema.Type.INT;

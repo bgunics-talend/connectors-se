@@ -23,7 +23,7 @@ public class JsonReaderSupplier implements RecordReaderSupplier {
 
     @Override
     public RecordReader getReader(RecordBuilderFactory factory, ContentFormat config, Object extraParameter) {
-        if (!JsonConfiguration.class.isInstance(config)) {
+        if (!(config instanceof JsonConfiguration)) {
             throw new IllegalArgumentException("try to get json-reader with other than json-config");
         }
 

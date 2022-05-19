@@ -23,7 +23,7 @@ public class JsonWriterSupplier implements RecordWriterSupplier {
     @Override
     public RecordWriter getWriter(TargetFinder target, ContentFormat config) {
 
-        if (!JsonConfiguration.class.isInstance(config)) {
+        if (!(config instanceof JsonConfiguration)) {
             throw new IllegalArgumentException("try to get json-writer with other than json config");
         }
 

@@ -14,10 +14,10 @@ package org.talend.components.common.stream.input.json;
 
 import java.io.StringReader;
 
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
+import java.util.Collection;
+import java.util.Iterator;
+
+import javax.json.*;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -119,9 +119,17 @@ class JsonToRecordTest {
 
     @Test
     void numberToRecord() {
-        String source = "{\n \"aNumber\" : 7,\n \"aaa\" : [1, 2, 3.0]\n}";
+        String source = "{\n \"aNumber\" : 7,\n \"aaa\" : [1, 2, 3]\n}";
         JsonObject json = getJsonObject(source);
         final Record record = toRecord.toRecord(json);
+
+        String source2 = "{\n \"aNumber\" : 7,\n \"aaa\" : [1, 2, 3.1]\n}";
+        JsonObject json2 = getJsonObject(source2);
+        final Record record2 = toRecord.toRecord(json2);
+        final Entry aaaEntry2 = findEntry(record2.getSchema(), "aaa");
+        Assertions.assertNotNull(aaaEntry2);
+        Assertions.assertEquals(Schema.Type.ARRAY, aaaEntry2.getType());
+        Assertions.assertEquals(Schema.Type.DOUBLE, aaaEntry2.getElementSchema().getType());
 
         Assertions.assertNotNull(record);
         final Entry aaaEntry = findEntry(record.getSchema(), "aaa");
@@ -172,7 +180,7 @@ class JsonToRecordTest {
         String source =
                 "{\"a_string\" : \"string1\", \"a_null\" : null, \"b_null\" : {},\"a_long\" : 123, \"a_double\" : 123.123, \"a_boolean\" : true, \"an_object\" : {\"att_a\" : \"aaa\", \"att_b\" : \"bbb\"}, \"an_array\" : [\"aaa\", \"bbb\", \"ccc\"]}";
         JsonObject json = getJsonObject(source);
-        final Record record = toRecord.toRecordWithFixedSchema(json, null, true);
+        final Record record = toRecord.toRecord(json, null, true);
         Assertions.assertNotNull(record.getSchema().getEntry("a_null"));
         Assertions.assertNotNull(record.getSchema().getEntry("b_null"));
     }
@@ -189,7 +197,7 @@ class JsonToRecordTest {
                 + "                    \"rel\": null\n" + "                }\n" + "            },\n"
                 + "            \"created_at\": \"2021-06-30T06:49:36Z\"\n" + "\t\t\t}";
         JsonObject json = getJsonObject(source);
-        final Record record = toRecord.toRecordWithFixedSchema(json, null, cases);
+        final Record record = toRecord.toRecord(json, null, cases);
         if (cases) {
             Assertions
                     .assertEquals("{\"from\":\"{}\",\"to\":\"{}\"}",
@@ -202,6 +210,26 @@ class JsonToRecordTest {
         });
     }
 
+    @Test
+    void arrayOfRecord() {
+        final JsonObject jsonObject = Json.createObjectBuilder()
+                .add("arrayField", Json.createArrayBuilder()
+                        .add(Json.createObjectBuilder().add("f1", "v1"))
+                        .add(Json.createObjectBuilder().add("f1", "v2").add("f2", "f2Value2")))
+                .build();
+        final Record record = this.toRecord.toRecord(jsonObject);
+        final Collection<Record> records = record.getArray(Record.class, "arrayField");
+        Assertions.assertEquals(2, records.size());
+        final Iterator<Record> recordIterator = records.iterator();
+        final Record record1 = recordIterator.next();
+        final Record record2 = recordIterator.next();
+        Assertions.assertEquals("f2Value2", record2.getString("f2"));
+        Assertions.assertEquals(record1.getSchema(), record2.getSchema());
+
+        final Schema arrayElementSchema = record.getSchema().getEntry("arrayField").getElementSchema();
+        Assertions.assertEquals(arrayElementSchema, record2.getSchema());
+    }
+
     private Entry findEntry(Schema schema, String entryName) {
         return schema.getEntries().stream().filter((Entry e) -> entryName.equals(e.getName())).findFirst().orElse(null);
     }
@@ -210,5 +238,86 @@ class JsonToRecordTest {
         try (JsonReader reader = Json.createReader(new StringReader(content))) {
             return reader.readObject();
         }
+    }
+
+    @Test
+    void toRecord_TDI46518() {
+        final String source = "{ \"array\": [{\"sub\":[] },{ \"sub\":[{\"field\": 102 }] }] }";
+        JsonObject json = getJsonObject(source);
+        final Record record = this.toRecord.toRecord(json);
+        final Entry arrayField = record.getSchema().getEntry("array");
+        Assertions.assertNotNull(arrayField);
+        Assertions.assertEquals(Schema.Type.ARRAY, arrayField.getType());
+
+        final Schema elementSchema = arrayField.getElementSchema();
+        Assertions.assertNotNull(elementSchema);
+        Assertions.assertEquals(Schema.Type.RECORD, elementSchema.getType());
+
+        final Entry subField = elementSchema.getEntry("sub");
+        Assertions.assertEquals(Schema.Type.ARRAY, subField.getType());
+        final Schema subElementSchema = subField.getElementSchema();
+        Assertions.assertEquals(Schema.Type.RECORD, subElementSchema.getType());
+    }
+
+    @Test
+    void withEmptyArray() {
+        final RecordBuilderFactory factory = new RecordBuilderFactoryImpl("test");
+        final Entry e1 = factory.newEntryBuilder()
+                .withType(Schema.Type.ARRAY)
+                .withName("e1")
+                .withNullable(true)
+                .withElementSchema(factory.newSchemaBuilder(Schema.Type.INT).build())
+                .build();
+
+        final Entry e2 = factory.newEntryBuilder()
+                .withType(Schema.Type.ARRAY)
+                .withName("e2")
+                .withNullable(true)
+                .withElementSchema(factory.newSchemaBuilder(Schema.Type.RECORD)
+                        .withEntry(factory.newEntryBuilder().withType(Schema.Type.STRING).withName("f1").build())
+                        .build())
+                .build();
+        final Schema schema = factory.newSchemaBuilder(Schema.Type.RECORD)
+                .withEntry(e1)
+                .withEntry(e2)
+                .build();
+        final JsonToRecord jsonToRecord = new JsonToRecord(factory, true, schema, true);
+
+        final JsonObject jsonObject1 = Json.createObjectBuilder()
+                .add("e1", Json.createArrayBuilder())
+                .add("e2", Json.createArrayBuilder())
+                .build();
+        final Record record1 = jsonToRecord.toRecord(jsonObject1);
+        final Collection<Integer> record1e1 = record1.getArray(Integer.class, "e1");
+        Assertions.assertTrue(record1e1.isEmpty());
+
+        final Collection<Record> record1e2 = record1.getArray(Record.class, "e2");
+        Assertions.assertTrue(record1e2.isEmpty());
+
+        final JsonObject jsonObject2 = Json.createObjectBuilder()
+                .add("e1", Json.createArrayBuilder().add(1).add(2).add(3))
+                .add("e2", Json.createArrayBuilder()
+                        .add(Json.createObjectBuilder()
+                                .add("f1", "hello")))
+                .build();
+        final Record record2 = jsonToRecord.toRecord(jsonObject2, schema, true);
+        final Collection<Integer> record2e1 = record2.getArray(Integer.class, "e1");
+        Assertions.assertEquals(3, record2e1.size());
+        Assertions.assertTrue(record2e1.contains(1));
+
+        final Collection<Record> record2e2 = record2.getArray(Record.class, "e2");
+        Assertions.assertEquals(1, record2e2.size());
+        final Record e2Record = record2e2.iterator().next();
+        Assertions.assertEquals("hello", e2Record.getString("f1"));
+
+        final JsonObject jsonObject3 = Json.createObjectBuilder()
+                .addNull("e1")
+                .build();
+        final Record record3 = jsonToRecord.toRecord(jsonObject3, schema);
+        final Collection<Integer> record3e1 = record3.getArray(Integer.class, "e1");
+        Assertions.assertTrue(record3e1.isEmpty());
+
+        final Collection<Record> record3e2 = record3.getArray(Record.class, "e2");
+        Assertions.assertTrue(record3e2.isEmpty());
     }
 }

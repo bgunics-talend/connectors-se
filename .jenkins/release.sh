@@ -18,7 +18,7 @@ main() (
   mvn deploy \
     --errors \
     --batch-mode \
-    --threads '1C' \
+    --fail-at-end \
     --activate-profiles "${jenkinsAction}" \
     "${extraBuildParams[@]}"
 
@@ -47,7 +47,7 @@ main() (
   mvn deploy \
     --errors \
     --batch-mode \
-    --threads '1C' \
+    --fail-at-end \
     --activate-profiles 'DEPLOY_SNAPSHOT_AFTER_RELEASE' \
     "${extraBuildParams[@]}"
 )
