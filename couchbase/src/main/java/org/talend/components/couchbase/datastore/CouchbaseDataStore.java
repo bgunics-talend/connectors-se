@@ -39,7 +39,8 @@ import lombok.Data;
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "useConnectionParameters" }),
         @GridLayout.Row({ "connectionParametersList" }),
         @GridLayout.Row({ "enableTLS" }), @GridLayout.Row({ "trustStorePath" }),
-        @GridLayout.Row({ "trustStorePassword" }), @GridLayout.Row({ "trustStoreType" })
+        @GridLayout.Row({ "trustStorePassword" }), @GridLayout.Row({ "trustStoreType" }),
+        @GridLayout.Row({ "connectionTimeout" })
 })
 @Documentation("Couchbase connection.")
 public class CouchbaseDataStore implements Serializable {
@@ -88,5 +89,9 @@ public class CouchbaseDataStore implements Serializable {
     @Documentation("Java Truststore Type")
     @ActiveIf(target = "enableTLS", value = "true")
     private String trustStoreType = "JKS";
+
+    @Option
+    @Documentation("Connection Timeout")
+    private int connectionTimeout = 3;
 
 }
