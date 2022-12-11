@@ -130,7 +130,7 @@ public class CosmosDbTestBase {
         Properties properties = System.getProperties();
         properties.stringPropertyNames();
         for (String property : properties.stringPropertyNames()) {
-            System.out.println(property + " : " + System.getProperty(property));
+            // System.out.println(property + " : " + System.getProperty(property));
         }
 
         dataStore = new CosmosDBDataStore();
@@ -209,6 +209,28 @@ public class CosmosDbTestBase {
                 .build();
         records.add(record2);
 
+        return records;
+    }
+
+    protected List<Record> createData4(int i) {
+        List records = new ArrayList(i);
+        for (; i > 0; i--) {
+            String json = "{id: \"" + i + "\", lastName: \"firstfirst\", " +
+                    "double: 3.555, long: 7928342, int: 3242342, Date1: \"2022-12-10\", " +
+                    "escape: \"this field has \\\" escapes\" }";
+
+            Record record = recordBuilderFactory
+                    .newRecordBuilder() //
+                    .withString(recordBuilderFactory.newEntryBuilder()
+                            .withType(Schema.Type.STRING)
+                            .withName("doc")
+                            .withRawName("*")
+                            .build(),
+                            json)
+                    .build();
+
+            records.add(record);
+        }
         return records;
     }
 

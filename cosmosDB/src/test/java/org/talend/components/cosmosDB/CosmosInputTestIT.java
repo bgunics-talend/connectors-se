@@ -12,13 +12,21 @@
  */
 package org.talend.components.cosmosDB;
 
+import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.talend.components.cosmosDB.input.CosmosDBInput;
 import org.talend.components.cosmosDB.input.CosmosDBInputConfiguration;
+import org.talend.components.cosmosDB.input.SchemaInfo;
 import org.talend.sdk.component.api.record.Record;
 
+import javax.json.JsonObjectBuilder;
+import java.util.ArrayList;
+import java.util.List;
+
+@Slf4j
 public class CosmosInputTestIT extends CosmosDbTestBase {
 
     CosmosDBInputConfiguration config;
@@ -59,4 +67,29 @@ public class CosmosInputTestIT extends CosmosDbTestBase {
         input.release();
         Assertions.assertNotNull(next);
     }
+
+    @Test
+    public void QueryTestToRaw() {
+        dataSet.setUseQuery(true);
+        dataSet
+                .setQuery(
+                        "SELECT {\"Name\":f.id, \"City\":f.address.city} AS Family\n" + " FROM " + collectionID + " f\n"
+                                + " WHERE f.address.city = f.address.state");
+        config.setDataset(dataSet);
+        SchemaInfo column = new SchemaInfo();
+        column.setOriginalDbColumnName("*");
+        column.setLabel("doc");
+        List<SchemaInfo> schema = new ArrayList<SchemaInfo>();
+        schema.add(column);
+        config.setStudioSchema(schema);
+        CosmosDBInput input = new CosmosDBInput(config, service, recordBuilderFactory);
+        input.init();
+        Record next = input.next();
+        log.info(next.toString());
+        input.release();
+        Assertions.assertEquals("Wakefield.7",
+                new JSONObject(next.getString("doc")).getJSONObject("Family").getString("Name"));
+
+    }
+
 }

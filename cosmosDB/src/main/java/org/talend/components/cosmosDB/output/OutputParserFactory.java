@@ -62,6 +62,8 @@ public class OutputParserFactory {
         if (delegate.startsWith("AvroRecord")) {
             // To avoid import dependence of AvroRecord
             return delegate.substring(20, delegate.length() - 1);
+        } else if ("*".equals(record.getSchema().getEntries().get(0).getOriginalFieldName())) {
+            delegate = record.getString(record.getSchema().getEntries().get(0).getName());
         }
         return delegate;
     }
