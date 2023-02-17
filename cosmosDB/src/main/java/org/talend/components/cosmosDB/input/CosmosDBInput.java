@@ -25,6 +25,7 @@ import com.azure.cosmos.util.CosmosPagedIterable;
 //import com.microsoft.azure.documentdb.FeedOptions;
 //import com.microsoft.azure.documentdb.FeedResponse;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.common.stream.input.json.JsonToRecord;
 import org.talend.components.cosmosDB.service.CosmosDBService;
@@ -57,7 +58,7 @@ public class CosmosDBInput implements Serializable {
 
     private transient JsonToRecord jsonToRecord;
 
-    private transient Iterator<Document> iterator;
+    private transient Iterator<JsonNode> iterator;
 
     public CosmosDBInput(@Option("configuration") final CosmosDBInputConfiguration configuration,
             final CosmosDBService service,
@@ -78,12 +79,13 @@ public class CosmosDBInput implements Serializable {
     @Producer
     public Record next() {
         if (iterator.hasNext()) {
-            Document next = iterator.next();
-            JsonReader reader = Json.createReader(new StringReader(next.toJson()));
+            JsonNode next = iterator.next();
+            JsonReader reader = Json.createReader(new StringReader(next.toString()));
             JsonObject jsonObject = reader.readObject();
             Record record = jsonToRecord.toRecord(jsonObject);
             return record;
         }
+        log.info("No more results");
         return null;
     }
 
@@ -94,9 +96,9 @@ public class CosmosDBInput implements Serializable {
         }
     }
 
-    private Iterator<Document> getResults(String databaseName, String collectionName) {
+    private Iterator<JsonNode> getResults(String databaseName, String collectionName) {
         String collectionLink = String.format("/dbs/%s/colls/%s", databaseName, collectionName);
-        CosmosPagedIterable<Document> queryResults;
+        CosmosPagedIterable<JsonNode> queryResults;
         if (configuration.getDataset().isUseQuery()) {
 
 /*
@@ -110,7 +112,7 @@ public class CosmosDBInput implements Serializable {
             queryResults = this.client.getDatabase(databaseName).getContainer(collectionName).queryItems(
                     configuration.getDataset().getQuery(),
                     queryOptions,
-                    Document.class);
+                    JsonNode.class);
 /*            queryResults =
                     this.client.queryDocuments(collectionLink, configuration.getDataset().getQuery(), queryOptions);
  */
@@ -119,16 +121,7 @@ public class CosmosDBInput implements Serializable {
             CosmosContainer container = this.client.getDatabase(databaseName).getContainer(collectionName);
             //container.read().getProperties().getPartitionKeyDefinition()
             System.out.println(container.read().getProperties().getPartitionKeyDefinition().getPaths().get(0));
-//            queryResults = container.readAllItems(new PartitionKey(container.read().getProperties().getPartitionKeyDefinition().getPaths().get(0)), Document.class);
-/*            queryResults = container.readAllItems(new PartitionKey("itemId"), Document.class);
-            System.out.println(queryResults.toString());
-            Iterator<FeedResponse<Document>>  it = queryResults.iterableByPage().iterator();
-            while(it.hasNext()){
-                FeedResponse<Document> doc = it.next();
-                return doc.getElements().iterator(); //TODO
-            }*/
-            queryResults = this.client.getDatabase(databaseName).getContainer(collectionName).readAllItems(new PartitionKey("/itemId"), Document.class);
-
+            queryResults = container.readAllItems(new PartitionKey(container.read().getProperties().getPartitionKeyDefinition().getPaths().get(0)), JsonNode.class);
         }
         return queryResults.iterator(); //. .getQueryIterator();
     }

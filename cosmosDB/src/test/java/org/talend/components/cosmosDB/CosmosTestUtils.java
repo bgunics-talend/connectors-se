@@ -11,27 +11,16 @@
  * specific language governing permissions and limitations under the License.
  */
 package org.talend.components.cosmosDB;
-/*
-import com.microsoft.azure.documentdb.DataType;
-import com.microsoft.azure.documentdb.Database;
-import com.microsoft.azure.documentdb.Document;
-import com.microsoft.azure.documentdb.DocumentClient;
-import com.microsoft.azure.documentdb.DocumentClientException;
-import com.microsoft.azure.documentdb.DocumentCollection;
-import com.microsoft.azure.documentdb.Index;
-import com.microsoft.azure.documentdb.IndexingPolicy;
-import com.microsoft.azure.documentdb.PartitionKey;
-import com.microsoft.azure.documentdb.PartitionKeyDefinition;
-import com.microsoft.azure.documentdb.RangeIndex;
-import com.microsoft.azure.documentdb.RequestOptions;
-import com.microsoft.azure.documentdb.ResourceResponse;
-
- */
 import com.azure.cosmos.CosmosClient;
+import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.implementation.Document;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
+import com.azure.cosmos.models.CosmosItemResponse;
+import com.azure.cosmos.models.PartitionKey;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.json.JsonObject;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -76,7 +65,16 @@ public class CosmosTestUtils {
 
     public boolean isCollectionExist(String collectionID)  {
         String collectionLink = String.format("/dbs/%s/colls/%s", databaseID, collectionID);
-        return client.getDatabase(databaseID).getContainer(collectionID).read().getStatusCode() == 200; //TODO
+        int status = client.getDatabase(databaseID).getContainer(collectionID).read().getStatusCode();
+        if(status == 200 ) {
+            return true;
+        } else if(status == 404 ) {
+            log.warn("Collection [" + collectionID + "] does not exist, status: " + status);
+            return false;
+        } else {
+            log.warn("Collection [" + collectionID + "] does not exist, status: " + status);
+            throw new RuntimeException("Collection [" + collectionID + "] does not exist, status: " + status);
+        }
 /*
         try {
             client.readCollection(collectionLink, null);
@@ -120,8 +118,11 @@ public class CosmosTestUtils {
 */
     }
 
-    public Document readDocuments(String collectionID, String documentID, String partitionKey) {
-        return null;
+    public JsonNode readDocuments(String collectionID, String documentID, String partitionKey) {
+        CosmosContainer container = client.getDatabase(databaseID).getContainer(collectionID);
+        CosmosItemResponse<JsonNode> resp = container.readItem(documentID, new PartitionKey(partitionKey) , JsonNode.class);
+        System.out.println("ReadDocuments status is: " + resp.getStatusCode());
+        return resp.getItem();
         /*
         String collectionLink = String.format("/dbs/%s/colls/%s/docs/%s", databaseID, collectionID, documentID);
         RequestOptions requestOptions = new RequestOptions();
@@ -145,16 +146,9 @@ public class CosmosTestUtils {
     }
 
     public void insertDocument(String json) {
-        String collectionLink = String.format("/dbs/%s/colls/%s", databaseID, collectionID);
-//        try {
-            Document document = new Document(json);
-            client.getDatabase(databaseID).getContainer(collectionID).createItem(document);
-/*            client.createDocument(collectionLink, document, new RequestOptions(), true);
-        } catch (DocumentClientException e) {
-            throw new IllegalArgumentException(e);
-        }
-
- */
+        Document document = new Document(json);
+        int status = client.getDatabase(databaseID).getContainer(collectionID).createItem(document).getStatusCode();
+        if(status != 201) throw new RuntimeException("Failed to insert document, status: " + status);
     }
 
     public void dropDatabase() {

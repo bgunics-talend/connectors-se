@@ -11,19 +11,12 @@
  * specific language governing permissions and limitations under the License.
  */
 package org.talend.components.cosmosDB;
-/*
-import com.microsoft.azure.documentdb.ConnectionPolicy;
-import com.microsoft.azure.documentdb.ConsistencyLevel;
-import com.microsoft.azure.documentdb.Document;
-import com.microsoft.azure.documentdb.DocumentClient;
-import com.microsoft.azure.documentdb.DocumentClientException;
-
- */
 import com.azure.core.credential.AzureKeyCredential;
 import com.azure.cosmos.ConsistencyLevel;
 import com.azure.cosmos.CosmosClient;
 import com.azure.cosmos.CosmosClientBuilder;
 import com.azure.cosmos.implementation.Document;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -43,8 +36,12 @@ import org.talend.sdk.component.junit.SimpleComponentRule;
 import org.talend.sdk.component.junit.environment.Environment;
 import org.talend.sdk.component.junit.environment.builtin.beam.DirectRunnerEnvironment;
 
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.StringReader;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -220,8 +217,13 @@ public class CosmosDbTestBase {
 
         return records;
     }
+    protected boolean recordEqual(Record record, JsonNode document) {
+        JsonReader reader = Json.createReader(new StringReader(document.toString()));
+        JsonObject jsonObject = reader.readObject();
+        return recordEqual(record, jsonObject);
+    }
 
-    protected boolean recordEqual(Record record, Document document) {
+    protected boolean recordEqual(Record record, JsonObject document) {
         Schema schema = record.getSchema();
         List<Schema.Entry> entries = schema.getEntries();
         boolean result = true;
@@ -245,7 +247,7 @@ public class CosmosDbTestBase {
                 ;
                 result = result
                         && recordEqual(record.getRecord(entry.getName()),
-                                new Document(document.get(entry.getName()).toString()));
+                                document.get(entry.getName()).asJsonObject() );
                 break;
 
             default:
