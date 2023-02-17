@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 package org.talend.components.cosmosDB;
-
+/*
 import com.microsoft.azure.documentdb.DataType;
 import com.microsoft.azure.documentdb.Database;
 import com.microsoft.azure.documentdb.Document;
@@ -25,6 +25,11 @@ import com.microsoft.azure.documentdb.PartitionKeyDefinition;
 import com.microsoft.azure.documentdb.RangeIndex;
 import com.microsoft.azure.documentdb.RequestOptions;
 import com.microsoft.azure.documentdb.ResourceResponse;
+
+ */
+import com.azure.cosmos.CosmosClient;
+import com.azure.cosmos.implementation.Document;
+import com.azure.cosmos.models.CosmosDatabaseResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -37,17 +42,21 @@ public class CosmosTestUtils {
 
     private String collectionID;
 
-    DocumentClient client;
+    CosmosClient client;
 
-    public CosmosTestUtils(DocumentClient client, String databaseID, String collectionID) {
+    public CosmosTestUtils(CosmosClient client, String databaseID, String collectionID) {
         this.databaseID = databaseID;
         this.collectionID = collectionID;
         this.client = client;
     }
 
-    public void createDatabaseIfNotExists() throws DocumentClientException {
+    public void createDatabaseIfNotExists()  {
+        int status = client.createDatabaseIfNotExists(databaseID).getStatusCode();
+        if(status != 201){
+            throw new RuntimeException("Failed to create database [" + databaseID + "] status: " + status);
+        }
+        /*
         String databaseLink = String.format("/dbs/%s", databaseID);
-
         // Check to verify a database with the id=FamilyDB does not exist
         try {
             client.readDatabase(databaseLink, null);
@@ -62,10 +71,13 @@ public class CosmosTestUtils {
                 throw de;
             }
         }
+         */
     }
 
-    public boolean isCollectionExist(String collectionID) throws DocumentClientException {
+    public boolean isCollectionExist(String collectionID)  {
         String collectionLink = String.format("/dbs/%s/colls/%s", databaseID, collectionID);
+        return client.getDatabase(databaseID).getContainer(collectionID).read().getStatusCode() == 200; //TODO
+/*
         try {
             client.readCollection(collectionLink, null);
         } catch (DocumentClientException e) {
@@ -77,9 +89,18 @@ public class CosmosTestUtils {
             }
         }
         return true;
+ */
     }
 
-    public void createDocumentCollectionIfNotExists() throws IOException, DocumentClientException {
+    public void createDocumentCollectionIfNotExists() throws IOException {
+        log.info("Collection [" + collectionID + "] will be created.");
+        int status = client.getDatabase(databaseID).createContainerIfNotExists(collectionID,"/lastName").getStatusCode();
+        if(status != 201) {
+            log.error("Failed to create collection [\" + collectionID + \"], status: " + status);
+        } else {
+            log.info("Collection [" + collectionID + "] created.");
+        }
+/*
         String databaseLink = String.format("/dbs/%s", databaseID);
         if (!isCollectionExist(collectionID)) {
             log.info("Collection [" + collectionID + "] will be created.");
@@ -96,54 +117,53 @@ public class CosmosTestUtils {
             client.createCollection(databaseLink, collectionInfo, requestOptions);
             log.info("Collection [" + collectionID + "] created.");
         }
-
+*/
     }
 
-    public Document readDocuments(String collectionID, String documentID, String partitionKey)
-            throws DocumentClientException {
+    public Document readDocuments(String collectionID, String documentID, String partitionKey) {
+        return null;
+        /*
         String collectionLink = String.format("/dbs/%s/colls/%s/docs/%s", databaseID, collectionID, documentID);
         RequestOptions requestOptions = new RequestOptions();
         requestOptions.setPartitionKey(new PartitionKey(partitionKey));
         requestOptions.setOfferThroughput(400);
         ResourceResponse<Document> documentResourceResponse = client.readDocument(collectionLink, requestOptions);
         return documentResourceResponse.getResource();
+         */
     }
 
-    public void deleteCollection(String collectionID) throws DocumentClientException {
-        String collectionLink = String.format("/dbs/%s/colls/%s", databaseID, collectionID);
-        try {
-            client.deleteCollection(collectionLink, null);
-        } catch (DocumentClientException e) {
-            log.error("There's a problem when delete ccollection [" + collectionID + "] , please delete it manually.");
-            throw e;
+    public void deleteCollection(String collectionID) {
+        int status = client.getDatabase(databaseID).getContainer(collectionID).delete().getStatusCode();
+        if(status != 204){
+            log.error("There's a problem when delete collection [" + collectionID + "] , please delete it manually.");
+            throw new RuntimeException("There's a problem when delete collection [" + collectionID + "]");
         }
     }
 
-    public void deleteCollection() throws DocumentClientException {
+    public void deleteCollection()  {
         deleteCollection(collectionID);
     }
 
     public void insertDocument(String json) {
         String collectionLink = String.format("/dbs/%s/colls/%s", databaseID, collectionID);
-        try {
+//        try {
             Document document = new Document(json);
-            client.createDocument(collectionLink, document, new RequestOptions(), true);
+            client.getDatabase(databaseID).getContainer(collectionID).createItem(document);
+/*            client.createDocument(collectionLink, document, new RequestOptions(), true);
         } catch (DocumentClientException e) {
             throw new IllegalArgumentException(e);
         }
+
+ */
     }
 
-    public void dropDatabase() throws DocumentClientException {
-        try {
-            client.deleteDatabase("/dbs/" + databaseID, null);
-        } catch (DocumentClientException e) {
-            if (!(e.getStatusCode() == 404)) {
-                log.error("Cannot Drop database: [" + databaseID + "] please deleted manually");
-                this.deleteCollection();
-                throw e;
-            }
-        } finally {
+    public void dropDatabase() {
+        int status = client.getDatabase(databaseID).delete().getStatusCode();
+        if(status != 204) {
+            log.error("Cannot Drop database: [" + databaseID + "] please deleted manually, status: " + status);
+            this.deleteCollection();
             client.close();
+            throw new RuntimeException("Cannot Drop database: [" + databaseID + "]");
         }
     }
 }

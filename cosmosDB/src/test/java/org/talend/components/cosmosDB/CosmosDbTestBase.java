@@ -11,12 +11,19 @@
  * specific language governing permissions and limitations under the License.
  */
 package org.talend.components.cosmosDB;
-
+/*
 import com.microsoft.azure.documentdb.ConnectionPolicy;
 import com.microsoft.azure.documentdb.ConsistencyLevel;
 import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.documentdb.DocumentClientException;
+
+ */
+import com.azure.core.credential.AzureKeyCredential;
+import com.azure.cosmos.ConsistencyLevel;
+import com.azure.cosmos.CosmosClient;
+import com.azure.cosmos.CosmosClientBuilder;
+import com.azure.cosmos.implementation.Document;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -108,10 +115,12 @@ public class CosmosDbTestBase {
     protected QueryDataset dataSet;
 
     @BeforeClass
-    public static void prepareDatabse() throws IOException, DocumentClientException {
-
-        DocumentClient client =
-                new DocumentClient(serviceEndpoint, primaryKey, new ConnectionPolicy(), ConsistencyLevel.Session);
+    public static void prepareDatabse() throws IOException {
+        CosmosClient client =
+//        DocumentClient client =
+//                new DocumentClient(serviceEndpoint, primaryKey, new ConnectionPolicy(), ConsistencyLevel.Session);
+                new CosmosClientBuilder().endpoint(serviceEndpoint).consistencyLevel(ConsistencyLevel.SESSION)
+                        .credential(new AzureKeyCredential(primaryKey)).buildClient();
 
         cosmosTestUtils = new CosmosTestUtils(client, databaseID, collectionID);
         cosmosTestUtils.createDatabaseIfNotExists();
@@ -130,7 +139,7 @@ public class CosmosDbTestBase {
         Properties properties = System.getProperties();
         properties.stringPropertyNames();
         for (String property : properties.stringPropertyNames()) {
-            System.out.println(property + " : " + System.getProperty(property));
+ //           System.out.println(property + " : " + System.getProperty(property));
         }
 
         dataStore = new CosmosDBDataStore();
@@ -144,7 +153,7 @@ public class CosmosDbTestBase {
     }
 
     @AfterClass
-    public static void dropDatabase() throws DocumentClientException {
+    public static void dropDatabase() {
         cosmosTestUtils.dropDatabase();
     }
 

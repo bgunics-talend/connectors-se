@@ -18,6 +18,7 @@ import java.util.Arrays;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.azure.cosmos.CosmosClient;
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.cosmosDB.service.CosmosDBService;
 import org.talend.components.cosmosDB.service.I18nMessage;
@@ -29,7 +30,7 @@ import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
-
+/*
 import com.microsoft.azure.documentdb.DataType;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.documentdb.DocumentClientException;
@@ -39,6 +40,8 @@ import com.microsoft.azure.documentdb.IndexingPolicy;
 import com.microsoft.azure.documentdb.PartitionKeyDefinition;
 import com.microsoft.azure.documentdb.RangeIndex;
 import com.microsoft.azure.documentdb.RequestOptions;
+
+ */
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,7 +56,7 @@ public class CosmosDBOutput implements Serializable {
 
     private final CosmosDBService service;
 
-    private transient DocumentClient client;
+    private transient CosmosClient client;
 
     private OutputParserFactory.IOutputParser out;
 
@@ -91,8 +94,10 @@ public class CosmosDBOutput implements Serializable {
         final String collectionName = configuration.getDataset().getCollectionID();
         String databaseLink = String.format("/dbs/%s", databaseName);
         String collectionLink = String.format("/dbs/%s/colls/%s", databaseName, collectionName);
-
+        this.client.getDatabase(databaseName).createContainerIfNotExists(collectionName,configuration.getPartitionKey());
+/*
         try {
+
             this.client.readCollection(collectionLink, null);
             log.info(String.format("Found %s", collectionName));
         } catch (DocumentClientException de) {
@@ -138,6 +143,7 @@ public class CosmosDBOutput implements Serializable {
                 throw new IllegalArgumentException(de);
             }
         }
+ */
     }
 
 }

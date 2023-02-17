@@ -12,15 +12,18 @@
  */
 package org.talend.components.cosmosDB.output;
 
+import com.azure.cosmos.CosmosClient;
+import com.azure.cosmos.implementation.Document;
+import com.azure.cosmos.models.CosmosItemRequestOptions;
 import org.apache.commons.lang3.StringUtils;
 import org.talend.sdk.component.api.record.Record;
-
+/*
 import com.microsoft.azure.documentdb.Document;
 import com.microsoft.azure.documentdb.DocumentClient;
 import com.microsoft.azure.documentdb.DocumentClientException;
 import com.microsoft.azure.documentdb.PartitionKey;
 import com.microsoft.azure.documentdb.RequestOptions;
-
+*/
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -32,9 +35,9 @@ public class OutputParserFactory {
 
     final CosmosDBOutputConfiguration configuration;
 
-    DocumentClient client;
+    CosmosClient client;
 
-    public OutputParserFactory(final CosmosDBOutputConfiguration configuration, DocumentClient client) {
+    public OutputParserFactory(final CosmosDBOutputConfiguration configuration, CosmosClient client) {
         this.configuration = configuration;
         this.client = client;
         databaseName = configuration.getDataset().getDatastore().getDatabaseID();
@@ -73,7 +76,7 @@ public class OutputParserFactory {
 
     class Insert implements IOutputParser {
 
-        String collectionLink = String.format("/dbs/%s/colls/%s", databaseName, collectionName);
+//        String collectionLink = String.format("/dbs/%s/colls/%s", databaseName, collectionName);
 
         boolean disAbleautoID = !configuration.isAutoIDGeneration();
 
@@ -82,8 +85,10 @@ public class OutputParserFactory {
             String jsonString = getJsonString(record);
             try {
                 Document document = new Document(jsonString);
-                client.createDocument(collectionLink, document, new RequestOptions(), disAbleautoID);
-            } catch (DocumentClientException e) {
+
+                client.getDatabase(databaseName).getContainer(collectionName).createItem(document,new CosmosItemRequestOptions());
+//                client.createDocument(collectionLink, document, new RequestOptions(), disAbleautoID);
+            } catch (Exception e) { //TODO
                 throw new IllegalArgumentException(e);
             }
         }
@@ -106,12 +111,13 @@ public class OutputParserFactory {
             String id = record.getString("id");
             final String documentLink = String.format("/dbs/%s/colls/%s/docs/%s", databaseName, collectionName, id);
             try {
-                client.deleteDocument(documentLink, getPartitionKey(record));
-            } catch (DocumentClientException e) {
+                client.getDatabase(databaseName).getContainer(collectionName).deleteItem(id, null,null);
+//                client.deleteDocument(documentLink, getPartitionKey(record));
+            } catch (Exception e) { //
                 throw new IllegalArgumentException(e);
             }
         }
-
+/*
         public RequestOptions getPartitionKey(Record record) {
             RequestOptions requestOptions = null;
             if (StringUtils.isNotEmpty(partitionKey)) {
@@ -122,8 +128,8 @@ public class OutputParserFactory {
             }
             return requestOptions;
         }
+ */
     }
-
     class Update implements IOutputParser {
 
         @Override
@@ -132,8 +138,9 @@ public class OutputParserFactory {
             final String documentLink = String.format("/dbs/%s/colls/%s/docs/%s", databaseName, collectionName, id);
             String jsonString = getJsonString(record);
             try {
-                client.replaceDocument(documentLink, new Document(jsonString), new RequestOptions());
-            } catch (DocumentClientException e) {
+                client.getDatabase(databaseName).getContainer(collectionName).replaceItem(new Document(jsonString), id,null,null);
+//                client.replaceDocument(documentLink, new Document(jsonString), new RequestOptions());
+            } catch (Exception e) { //TODO
                 throw new IllegalArgumentException(e);
             }
         }
@@ -149,8 +156,9 @@ public class OutputParserFactory {
         public void output(Record record) {
             String jsonString = getJsonString(record);
             try {
-                client.upsertDocument(collectionLink, new Document(jsonString), new RequestOptions(), disAbleautoID);
-            } catch (DocumentClientException e) {
+                client.getDatabase(databaseName).getContainer(collectionName).upsertItem(new Document(jsonString));
+//                client.upsertDocument(collectionLink, new Document(jsonString), new RequestOptions(), disAbleautoID);
+            } catch (Exception e) { //TODO
                 throw new IllegalArgumentException(e);
             }
         }

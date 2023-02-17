@@ -12,10 +12,19 @@
  */
 package org.talend.components.cosmosDB.input;
 
-import com.microsoft.azure.documentdb.Document;
-import com.microsoft.azure.documentdb.DocumentClient;
-import com.microsoft.azure.documentdb.FeedOptions;
-import com.microsoft.azure.documentdb.FeedResponse;
+//import com.microsoft.azure.documentdb.Document;
+import com.azure.cosmos.CosmosContainer;
+import com.azure.cosmos.implementation.Document;
+//import com.microsoft.azure.documentdb.DocumentClient;
+import com.azure.cosmos.CosmosClient;
+import com.azure.cosmos.models.CosmosQueryRequestOptions;
+import com.azure.cosmos.models.FeedResponse;
+import com.azure.cosmos.models.PartitionKey;
+import com.azure.cosmos.models.PartitionKeyBuilder;
+import com.azure.cosmos.util.CosmosPagedIterable;
+//import com.microsoft.azure.documentdb.FeedOptions;
+//import com.microsoft.azure.documentdb.FeedResponse;
+import com.fasterxml.jackson.core.JsonParser;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.common.stream.input.json.JsonToRecord;
 import org.talend.components.cosmosDB.service.CosmosDBService;
@@ -44,7 +53,7 @@ public class CosmosDBInput implements Serializable {
 
     private CosmosDBService service;
 
-    private transient DocumentClient client;
+    private transient CosmosClient client;
 
     private transient JsonToRecord jsonToRecord;
 
@@ -87,19 +96,40 @@ public class CosmosDBInput implements Serializable {
 
     private Iterator<Document> getResults(String databaseName, String collectionName) {
         String collectionLink = String.format("/dbs/%s/colls/%s", databaseName, collectionName);
-        FeedResponse<Document> queryResults;
+        CosmosPagedIterable<Document> queryResults;
         if (configuration.getDataset().isUseQuery()) {
+
+/*
             // Set some common query options
             FeedOptions queryOptions = new FeedOptions();
             queryOptions.setPageSize(-1);
             queryOptions.setEnableCrossPartitionQuery(true);
+ */
             log.debug("query: " + configuration.getDataset().getQuery());
-            queryResults =
+            CosmosQueryRequestOptions queryOptions = new CosmosQueryRequestOptions();
+            queryResults = this.client.getDatabase(databaseName).getContainer(collectionName).queryItems(
+                    configuration.getDataset().getQuery(),
+                    queryOptions,
+                    Document.class);
+/*            queryResults =
                     this.client.queryDocuments(collectionLink, configuration.getDataset().getQuery(), queryOptions);
+ */
             log.info("Query [{}] execution success.", configuration.getDataset().getQuery());
         } else {
-            queryResults = client.readDocuments(collectionLink, null);
+            CosmosContainer container = this.client.getDatabase(databaseName).getContainer(collectionName);
+            //container.read().getProperties().getPartitionKeyDefinition()
+            System.out.println(container.read().getProperties().getPartitionKeyDefinition().getPaths().get(0));
+//            queryResults = container.readAllItems(new PartitionKey(container.read().getProperties().getPartitionKeyDefinition().getPaths().get(0)), Document.class);
+/*            queryResults = container.readAllItems(new PartitionKey("itemId"), Document.class);
+            System.out.println(queryResults.toString());
+            Iterator<FeedResponse<Document>>  it = queryResults.iterableByPage().iterator();
+            while(it.hasNext()){
+                FeedResponse<Document> doc = it.next();
+                return doc.getElements().iterator(); //TODO
+            }*/
+            queryResults = this.client.getDatabase(databaseName).getContainer(collectionName).readAllItems(new PartitionKey("/itemId"), Document.class);
+
         }
-        return queryResults.getQueryIterator();
+        return queryResults.iterator(); //. .getQueryIterator();
     }
 }

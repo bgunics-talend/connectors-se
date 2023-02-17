@@ -56,6 +56,7 @@ public class CosmosInputTestIT extends CosmosDbTestBase {
         CosmosDBInput input = new CosmosDBInput(config, service, recordBuilderFactory);
         input.init();
         Record next = input.next();
+        System.out.println(next.toString());
         input.release();
         Assertions.assertNotNull(next);
     }
