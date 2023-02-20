@@ -100,7 +100,6 @@ public class CosmosDBInput implements Serializable {
         String collectionLink = String.format("/dbs/%s/colls/%s", databaseName, collectionName);
         CosmosPagedIterable<JsonNode> queryResults;
         if (configuration.getDataset().isUseQuery()) {
-
 /*
             // Set some common query options
             FeedOptions queryOptions = new FeedOptions();
@@ -118,10 +117,12 @@ public class CosmosDBInput implements Serializable {
  */
             log.info("Query [{}] execution success.", configuration.getDataset().getQuery());
         } else {
-            CosmosContainer container = this.client.getDatabase(databaseName).getContainer(collectionName);
-            //container.read().getProperties().getPartitionKeyDefinition()
-            System.out.println(container.read().getProperties().getPartitionKeyDefinition().getPaths().get(0));
-            queryResults = container.readAllItems(new PartitionKey(container.read().getProperties().getPartitionKeyDefinition().getPaths().get(0)), JsonNode.class);
+            CosmosQueryRequestOptions queryOptions = new CosmosQueryRequestOptions();
+            queryResults = this.client.getDatabase(databaseName).getContainer(collectionName).queryItems(
+                    "select * FROM " + collectionName +" f ",
+                    queryOptions,
+                    JsonNode.class);
+            //queryResults = container.readAllItems(/* no 1=1 filter available here*/, JsonNode.class);
         }
         return queryResults.iterator(); //. .getQueryIterator();
     }

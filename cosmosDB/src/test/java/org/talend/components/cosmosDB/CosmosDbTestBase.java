@@ -37,6 +37,7 @@ import org.talend.sdk.component.junit.environment.Environment;
 import org.talend.sdk.component.junit.environment.builtin.beam.DirectRunnerEnvironment;
 
 import javax.json.Json;
+import javax.json.JsonNumber;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import java.io.FileInputStream;
@@ -229,27 +230,41 @@ public class CosmosDbTestBase {
         boolean result = true;
         Base64.Decoder decoder = Base64.getDecoder();
         for (Schema.Entry entry : entries) {
+            if(record.get(Object.class, entry.getName()) == null) {
+                result = result && (document.get(entry.getName()) == null );
+                continue;
+            }
             switch (entry.getType()) {
             case BYTES:
-                byte[] decode = decoder.decode(String.valueOf(document.get(entry.getName())).getBytes());
+                byte[] decode = decoder.decode(String.valueOf(document.getString(entry.getName())).getBytes());
                 boolean equals1 = new String(record.getBytes(entry.getName())).equals(new String(decode));
                 result = result && equals1;
                 break;
             case DATETIME:
                 String format = record.getDateTime(entry.getName()).format(DateTimeFormatter.ISO_DATE_TIME);
-                result = result && format.equals(document.get(entry.getName()));
+                result = result && format.equals(document.getString(entry.getName()));
                 break;
+            case DOUBLE:
+                Double aDouble = record.getDouble(entry.getName());
+                Double bDouble = ((JsonNumber)document.get(entry.getName())).doubleValue();
+                result = result && aDouble.equals(bDouble);
+                break;
+            case INT:
             case LONG:
                 Long aLong = record.getLong(entry.getName());
-                result = result && aLong.equals(Long.valueOf(String.valueOf(document.get(entry.getName()))));
+                Long bLong = ((JsonNumber)document.get(entry.getName())).longValue();
+                result = result && aLong.equals(bLong);
                 break;
             case RECORD:
-                ;
                 result = result
                         && recordEqual(record.getRecord(entry.getName()),
                                 document.get(entry.getName()).asJsonObject() );
                 break;
-
+            case STRING:
+                String aString = record.getString(entry.getName());
+                String bString = document.getString(entry.getName());
+                result = result && aString.equals(bString);
+                break;
             default:
                 Object o = record.get(getEntryClass(entry), entry.getName());
                 if (o != null) {

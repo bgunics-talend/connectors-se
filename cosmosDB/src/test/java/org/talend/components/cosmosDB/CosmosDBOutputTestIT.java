@@ -12,11 +12,6 @@
  */
 package org.talend.components.cosmosDB;
 
-/*import com.microsoft.azure.documentdb.Document;
-import com.microsoft.azure.documentdb.DocumentClientException;
-
- */
-import com.azure.cosmos.implementation.Document;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.Before;
@@ -25,8 +20,6 @@ import org.talend.components.cosmosDB.output.CosmosDBOutput;
 import org.talend.components.cosmosDB.output.CosmosDBOutputConfiguration;
 import org.talend.components.cosmosDB.output.DataAction;
 import org.talend.sdk.component.api.record.Record;
-
-import javax.json.JsonObject;
 
 public class CosmosDBOutputTestIT extends CosmosDbTestBase {
 
@@ -83,6 +76,7 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
         Record record = createData3().get(0);
         cosmosDBOutput.onNext(record);
         cosmosDBOutput.release();
+        //TODO
 //        try {
             cosmosTestUtils.readDocuments(collectionID, "Andersen.1", "Andersen");
             Assertions.fail();

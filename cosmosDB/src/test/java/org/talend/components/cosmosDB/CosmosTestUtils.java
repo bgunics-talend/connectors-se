@@ -14,15 +14,12 @@ package org.talend.components.cosmosDB;
 import com.azure.cosmos.CosmosClient;
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.implementation.Document;
-import com.azure.cosmos.models.CosmosDatabaseResponse;
 import com.azure.cosmos.models.CosmosItemResponse;
 import com.azure.cosmos.models.PartitionKey;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.json.JsonObject;
 import java.io.IOException;
-import java.util.Arrays;
 
 @Slf4j
 public class CosmosTestUtils {

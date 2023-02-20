@@ -15,15 +15,9 @@ package org.talend.components.cosmosDB.output;
 import com.azure.cosmos.CosmosClient;
 import com.azure.cosmos.implementation.Document;
 import com.azure.cosmos.models.CosmosItemRequestOptions;
+import com.azure.cosmos.models.PartitionKey;
 import org.apache.commons.lang3.StringUtils;
 import org.talend.sdk.component.api.record.Record;
-/*
-import com.microsoft.azure.documentdb.Document;
-import com.microsoft.azure.documentdb.DocumentClient;
-import com.microsoft.azure.documentdb.DocumentClientException;
-import com.microsoft.azure.documentdb.PartitionKey;
-import com.microsoft.azure.documentdb.RequestOptions;
-*/
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -75,9 +69,6 @@ public class OutputParserFactory {
     }
 
     class Insert implements IOutputParser {
-
-//        String collectionLink = String.format("/dbs/%s/colls/%s", databaseName, collectionName);
-
         boolean disAbleautoID = !configuration.isAutoIDGeneration();
 
         @Override
@@ -85,7 +76,7 @@ public class OutputParserFactory {
             String jsonString = getJsonString(record);
             try {
                 Document document = new Document(jsonString);
-
+                //TODO handle AutoID checkbox
                 client.getDatabase(databaseName).getContainer(collectionName).createItem(document,new CosmosItemRequestOptions());
 //                client.createDocument(collectionLink, document, new RequestOptions(), disAbleautoID);
             } catch (Exception e) { //TODO
@@ -109,26 +100,22 @@ public class OutputParserFactory {
         @Override
         public void output(Record record) {
             String id = record.getString("id");
-            final String documentLink = String.format("/dbs/%s/colls/%s/docs/%s", databaseName, collectionName, id);
             try {
-                client.getDatabase(databaseName).getContainer(collectionName).deleteItem(id, null,null);
-//                client.deleteDocument(documentLink, getPartitionKey(record));
+                client.getDatabase(databaseName).getContainer(collectionName).deleteItem(id,
+                        getPartitionKey(record),null);
             } catch (Exception e) { //
                 throw new IllegalArgumentException(e);
             }
         }
-/*
-        public RequestOptions getPartitionKey(Record record) {
-            RequestOptions requestOptions = null;
+
+        public PartitionKey getPartitionKey(Record record) {
             if (StringUtils.isNotEmpty(partitionKey)) {
                 // TODO support complex partition key
-                requestOptions = new RequestOptions();
-                requestOptions.setPartitionKey(new PartitionKey(record.get(Object.class, partitionKey)));
-
+                return new PartitionKey(record.get(Object.class,partitionKey));
+//                partitionKey1.setPartitionKey(new PartitionKey(record.get(Object.class, partitionKey)));
             }
-            return requestOptions;
+            return PartitionKey.NONE;
         }
- */
     }
     class Update implements IOutputParser {
 
@@ -149,8 +136,6 @@ public class OutputParserFactory {
     class Upsert implements IOutputParser {
 
         boolean disAbleautoID = !configuration.isAutoIDGeneration();
-
-        String collectionLink = String.format("/dbs/%s/colls/%s", databaseName, collectionName);
 
         @Override
         public void output(Record record) {
