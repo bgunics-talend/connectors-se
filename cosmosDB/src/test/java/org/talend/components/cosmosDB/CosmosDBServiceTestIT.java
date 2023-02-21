@@ -48,4 +48,12 @@ public class CosmosDBServiceTestIT extends CosmosDbTestBase {
         Assertions.assertEquals(Schema.Type.RECORD, schema.getType());
     }
 
+    @Test
+    public void addColumnsTestNoQuery() {
+        dataSet.setUseQuery(false);
+        Schema schema = service.addColumns(dataSet);
+        System.out.println(schema);
+        Assertions.assertNotNull(schema);
+        Assertions.assertEquals(Schema.Type.RECORD, schema.getType());
+    }
 }

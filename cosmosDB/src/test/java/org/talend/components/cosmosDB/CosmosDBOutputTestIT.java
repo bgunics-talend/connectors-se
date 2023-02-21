@@ -34,7 +34,7 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
     }
 
     @Test
-    public void outputTest()  {
+    public void outputTest() {
         config.setAutoIDGeneration(true);
         CosmosDBOutput cosmosDBOutput = new CosmosDBOutput(config, service);
         cosmosDBOutput.init();
@@ -76,15 +76,16 @@ public class CosmosDBOutputTestIT extends CosmosDbTestBase {
         Record record = createData3().get(0);
         cosmosDBOutput.onNext(record);
         cosmosDBOutput.release();
-        //TODO
-//        try {
-            cosmosTestUtils.readDocuments(collectionID, "Andersen.1", "Andersen");
-            Assertions.fail();
-/*        } catch (Exception e) {
-            Assertions.assertEquals(404, e.getStatusCode());
-        }
-
- */
+        // TODO
+        // try {
+        cosmosTestUtils.readDocuments(collectionID, "Andersen.1", "Andersen");
+        Assertions.fail();
+        /*
+         * } catch (Exception e) {
+         * Assertions.assertEquals(404, e.getStatusCode());
+         * }
+         * 
+         */
 
     }
 }

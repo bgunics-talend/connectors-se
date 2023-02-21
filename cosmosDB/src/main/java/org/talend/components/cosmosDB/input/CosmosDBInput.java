@@ -12,18 +12,14 @@
  */
 package org.talend.components.cosmosDB.input;
 
-//import com.microsoft.azure.documentdb.Document;
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.implementation.Document;
-//import com.microsoft.azure.documentdb.DocumentClient;
 import com.azure.cosmos.CosmosClient;
 import com.azure.cosmos.models.CosmosQueryRequestOptions;
 import com.azure.cosmos.models.FeedResponse;
 import com.azure.cosmos.models.PartitionKey;
 import com.azure.cosmos.models.PartitionKeyBuilder;
 import com.azure.cosmos.util.CosmosPagedIterable;
-//import com.microsoft.azure.documentdb.FeedOptions;
-//import com.microsoft.azure.documentdb.FeedResponse;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
@@ -100,30 +96,35 @@ public class CosmosDBInput implements Serializable {
         String collectionLink = String.format("/dbs/%s/colls/%s", databaseName, collectionName);
         CosmosPagedIterable<JsonNode> queryResults;
         if (configuration.getDataset().isUseQuery()) {
-/*
-            // Set some common query options
-            FeedOptions queryOptions = new FeedOptions();
-            queryOptions.setPageSize(-1);
-            queryOptions.setEnableCrossPartitionQuery(true);
- */
+            /*
+             * // Set some common query options
+             * FeedOptions queryOptions = new FeedOptions();
+             * queryOptions.setPageSize(-1);
+             * queryOptions.setEnableCrossPartitionQuery(true);
+             */
             log.debug("query: " + configuration.getDataset().getQuery());
             CosmosQueryRequestOptions queryOptions = new CosmosQueryRequestOptions();
-            queryResults = this.client.getDatabase(databaseName).getContainer(collectionName).queryItems(
-                    configuration.getDataset().getQuery(),
-                    queryOptions,
-                    JsonNode.class);
-/*            queryResults =
-                    this.client.queryDocuments(collectionLink, configuration.getDataset().getQuery(), queryOptions);
- */
+            queryResults = this.client.getDatabase(databaseName)
+                    .getContainer(collectionName)
+                    .queryItems(
+                            configuration.getDataset().getQuery(),
+                            queryOptions,
+                            JsonNode.class);
+            /*
+             * queryResults =
+             * this.client.queryDocuments(collectionLink, configuration.getDataset().getQuery(), queryOptions);
+             */
             log.info("Query [{}] execution success.", configuration.getDataset().getQuery());
         } else {
             CosmosQueryRequestOptions queryOptions = new CosmosQueryRequestOptions();
-            queryResults = this.client.getDatabase(databaseName).getContainer(collectionName).queryItems(
-                    "select * FROM " + collectionName +" f ",
-                    queryOptions,
-                    JsonNode.class);
-            //queryResults = container.readAllItems(/* no 1=1 filter available here*/, JsonNode.class);
+            queryResults = this.client.getDatabase(databaseName)
+                    .getContainer(collectionName)
+                    .queryItems(
+                            "select * FROM " + collectionName + " f ",
+                            queryOptions,
+                            JsonNode.class);
+            // queryResults = container.readAllItems(/* no 1=1 filter available here*/, JsonNode.class);
         }
-        return queryResults.iterator(); //. .getQueryIterator();
+        return queryResults.iterator(); // . .getQueryIterator();
     }
 }

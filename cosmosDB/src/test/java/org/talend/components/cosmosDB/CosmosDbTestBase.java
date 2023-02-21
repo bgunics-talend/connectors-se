@@ -11,6 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 package org.talend.components.cosmosDB;
+
 import com.azure.core.credential.AzureKeyCredential;
 import com.azure.cosmos.ConsistencyLevel;
 import com.azure.cosmos.CosmosClient;
@@ -115,10 +116,12 @@ public class CosmosDbTestBase {
     @BeforeClass
     public static void prepareDatabse() throws IOException {
         CosmosClient client =
-//        DocumentClient client =
-//                new DocumentClient(serviceEndpoint, primaryKey, new ConnectionPolicy(), ConsistencyLevel.Session);
-                new CosmosClientBuilder().endpoint(serviceEndpoint).consistencyLevel(ConsistencyLevel.SESSION)
-                        .credential(new AzureKeyCredential(primaryKey)).buildClient();
+                // DocumentClient client =
+                // new DocumentClient(serviceEndpoint, primaryKey, new ConnectionPolicy(), ConsistencyLevel.Session);
+                new CosmosClientBuilder().endpoint(serviceEndpoint)
+                        .consistencyLevel(ConsistencyLevel.SESSION)
+                        .credential(new AzureKeyCredential(primaryKey))
+                        .buildClient();
 
         cosmosTestUtils = new CosmosTestUtils(client, databaseID, collectionID);
         cosmosTestUtils.createDatabaseIfNotExists();
@@ -137,7 +140,7 @@ public class CosmosDbTestBase {
         Properties properties = System.getProperties();
         properties.stringPropertyNames();
         for (String property : properties.stringPropertyNames()) {
- //           System.out.println(property + " : " + System.getProperty(property));
+            // System.out.println(property + " : " + System.getProperty(property));
         }
 
         dataStore = new CosmosDBDataStore();
@@ -218,6 +221,7 @@ public class CosmosDbTestBase {
 
         return records;
     }
+
     protected boolean recordEqual(Record record, JsonNode document) {
         JsonReader reader = Json.createReader(new StringReader(document.toString()));
         JsonObject jsonObject = reader.readObject();
@@ -230,8 +234,8 @@ public class CosmosDbTestBase {
         boolean result = true;
         Base64.Decoder decoder = Base64.getDecoder();
         for (Schema.Entry entry : entries) {
-            if(record.get(Object.class, entry.getName()) == null) {
-                result = result && (document.get(entry.getName()) == null );
+            if (record.get(Object.class, entry.getName()) == null) {
+                result = result && (document.get(entry.getName()) == null);
                 continue;
             }
             switch (entry.getType()) {
@@ -246,19 +250,19 @@ public class CosmosDbTestBase {
                 break;
             case DOUBLE:
                 Double aDouble = record.getDouble(entry.getName());
-                Double bDouble = ((JsonNumber)document.get(entry.getName())).doubleValue();
+                Double bDouble = ((JsonNumber) document.get(entry.getName())).doubleValue();
                 result = result && aDouble.equals(bDouble);
                 break;
             case INT:
             case LONG:
                 Long aLong = record.getLong(entry.getName());
-                Long bLong = ((JsonNumber)document.get(entry.getName())).longValue();
+                Long bLong = ((JsonNumber) document.get(entry.getName())).longValue();
                 result = result && aLong.equals(bLong);
                 break;
             case RECORD:
                 result = result
                         && recordEqual(record.getRecord(entry.getName()),
-                                document.get(entry.getName()).asJsonObject() );
+                                document.get(entry.getName()).asJsonObject());
                 break;
             case STRING:
                 String aString = record.getString(entry.getName());

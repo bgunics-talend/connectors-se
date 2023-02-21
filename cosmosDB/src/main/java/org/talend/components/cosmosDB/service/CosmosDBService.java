@@ -16,13 +16,6 @@ import com.azure.core.credential.AzureKeyCredential;
 import com.azure.cosmos.CosmosClient;
 import com.azure.cosmos.CosmosClientBuilder;
 import com.azure.cosmos.CosmosDatabase;
-//import com.microsoft.azure.documentdb.ConnectionMode;
-//import com.microsoft.azure.documentdb.ConnectionPolicy;
-//import com.microsoft.azure.documentdb.ConsistencyLevel;
-//import com.microsoft.azure.documentdb.DocumentClient;
-//import com.microsoft.azure.documentdb.DocumentClientException;
-
-//import com.microsoft.azure.documentdb.RetryOptions;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.common.service.http.ValidateSites;
@@ -74,23 +67,26 @@ public class CosmosDBService {
             throw new ComponentException(ComponentException.ErrorOrigin.USER, errorMessage);
         }
 
-       /*
-        ConnectionPolicy policy = new ConnectionPolicy();
-        RetryOptions retryOptions = new RetryOptions();
-        retryOptions.setMaxRetryAttemptsOnThrottledRequests(0);
-        policy.setRetryOptions(retryOptions);
-
-        policy.setConnectionMode(ConnectionMode.valueOf(datastore.getConnectionMode().name()));
-        policy.setMaxPoolSize(datastore.getMaxConnectionPoolSize());
-
-        */
+        /*
+         * ConnectionPolicy policy = new ConnectionPolicy();
+         * RetryOptions retryOptions = new RetryOptions();
+         * retryOptions.setMaxRetryAttemptsOnThrottledRequests(0);
+         * policy.setRetryOptions(retryOptions);
+         * 
+         * policy.setConnectionMode(ConnectionMode.valueOf(datastore.getConnectionMode().name()));
+         * policy.setMaxPoolSize(datastore.getMaxConnectionPoolSize());
+         * 
+         */
         CosmosClientBuilder builder = new CosmosClientBuilder();
 
-        return builder.endpoint(datastore.getServiceEndpoint()).credential(new AzureKeyCredential(datastore.getPrimaryKey())).buildClient();
-  /*      return new DocumentClient(datastore.getServiceEndpoint(), datastore.getPrimaryKey(), policy,
-                ConsistencyLevel.valueOf(datastore.getConsistencyLevel().name()));
-
-   */
+        return builder.endpoint(datastore.getServiceEndpoint())
+                .credential(new AzureKeyCredential(datastore.getPrimaryKey()))
+                .buildClient();
+        /*
+         * return new DocumentClient(datastore.getServiceEndpoint(), datastore.getPrimaryKey(), policy,
+         * ConsistencyLevel.valueOf(datastore.getConsistencyLevel().name()));
+         * 
+         */
     }
 
     @HealthCheck("healthCheck")
@@ -101,27 +97,27 @@ public class CosmosDBService {
             return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.vacantDBID());
         }
         try (CosmosClient client = documentClientFrom(datastore)) {
-//            String databaseLink = String.format("/dbs/%s", databaseID);
-//            client.readDatabase(databaseLink, null);
+            // String databaseLink = String.format("/dbs/%s", databaseID);
+            // client.readDatabase(databaseLink, null);
             CosmosDatabase db = client.getDatabase(databaseID);
             int dbStatus = db.read().getStatusCode();
             log.info("DB Status for " + databaseID + " is: " + dbStatus);
-            if(dbStatus == 200) {
+            if (dbStatus == 200) {
                 return new HealthCheckStatus(HealthCheckStatus.Status.OK, i18n.connectionSuccess());
-            } else if(dbStatus == 404){
+            } else if (dbStatus == 404) {
                 return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.databaseNotExist(databaseID));
             } else {
                 return new HealthCheckStatus(HealthCheckStatus.Status.KO, "Status: " + dbStatus);
             }
-        /*
-        } catch (DocumentClientException de) {
-            // If the database does not exist, create a new database
-            if (de.getStatusCode() == 404) {
-                return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.databaseNotExist(databaseID));
-            } else {
-                return new HealthCheckStatus(HealthCheckStatus.Status.KO, de.getLocalizedMessage());
-            }
-            */
+            /*
+             * } catch (DocumentClientException de) {
+             * // If the database does not exist, create a new database
+             * if (de.getStatusCode() == 404) {
+             * return new HealthCheckStatus(HealthCheckStatus.Status.KO, i18n.databaseNotExist(databaseID));
+             * } else {
+             * return new HealthCheckStatus(HealthCheckStatus.Status.KO, de.getLocalizedMessage());
+             * }
+             */
         } catch (Exception exception) {
             String message = "";
             if (exception.getCause() instanceof RuntimeException

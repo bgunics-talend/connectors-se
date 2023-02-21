@@ -30,18 +30,6 @@ import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
-/*
-import com.microsoft.azure.documentdb.DataType;
-import com.microsoft.azure.documentdb.DocumentClient;
-import com.microsoft.azure.documentdb.DocumentClientException;
-import com.microsoft.azure.documentdb.DocumentCollection;
-import com.microsoft.azure.documentdb.Index;
-import com.microsoft.azure.documentdb.IndexingPolicy;
-import com.microsoft.azure.documentdb.PartitionKeyDefinition;
-import com.microsoft.azure.documentdb.RangeIndex;
-import com.microsoft.azure.documentdb.RequestOptions;
-
- */
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -94,56 +82,57 @@ public class CosmosDBOutput implements Serializable {
         final String collectionName = configuration.getDataset().getCollectionID();
         String databaseLink = String.format("/dbs/%s", databaseName);
         String collectionLink = String.format("/dbs/%s/colls/%s", databaseName, collectionName);
-        this.client.getDatabase(databaseName).createContainerIfNotExists(collectionName,configuration.getPartitionKey());
-/*
-        try {
-
-            this.client.readCollection(collectionLink, null);
-            log.info(String.format("Found %s", collectionName));
-        } catch (DocumentClientException de) {
-            // If the document collection does not exist, create a new
-            // collection
-            if (de.getStatusCode() == 404) {
-                if (configuration.getDataAction() == DataAction.DELETE
-                        || configuration.getDataAction() == DataAction.UPDATE) {
-                    throw new IllegalArgumentException(de);
-                }
-                DocumentCollection collectionInfo = new DocumentCollection();
-                collectionInfo.setId(collectionName);
-
-                // Optionally, you can configure the indexing policy of a
-                // collection. Here we configure collections for maximum query
-                // flexibility including string range queries.
-                RangeIndex index = new RangeIndex(DataType.String);
-                index.setPrecision(-1);
-
-                collectionInfo.setIndexingPolicy(new IndexingPolicy(new Index[] { index }));
-                if (StringUtils.isNotEmpty(configuration.getPartitionKey())) {
-                    PartitionKeyDefinition pkd = new PartitionKeyDefinition();
-                    pkd.setPaths(Arrays.asList(configuration.getPartitionKey().split(",")));
-                    collectionInfo.setPartitionKey(pkd);
-                }
-                // DocumentDB collections can be reserved with throughput
-                // specified in request units/second. 1 RU is a normalized
-                // request equivalent to the read of a 1KB document. Here we
-                // create a collection with 400 RU/s.
-                RequestOptions requestOptions = new RequestOptions();
-                if (configuration.getOfferThroughput() > 0) {
-                    requestOptions.setOfferThroughput(configuration.getOfferThroughput());
-                }
-
-                try {
-                    this.client.createCollection(databaseLink, collectionInfo, requestOptions);
-                } catch (DocumentClientException e) {
-                    throw new IllegalArgumentException(e);
-                }
-
-                log.info(String.format("Created %s", collectionName));
-            } else {
-                throw new IllegalArgumentException(de);
-            }
-        }
- */
+        this.client.getDatabase(databaseName)
+                .createContainerIfNotExists(collectionName, configuration.getPartitionKey());
+        /*
+         * try {
+         * 
+         * this.client.readCollection(collectionLink, null);
+         * log.info(String.format("Found %s", collectionName));
+         * } catch (DocumentClientException de) {
+         * // If the document collection does not exist, create a new
+         * // collection
+         * if (de.getStatusCode() == 404) {
+         * if (configuration.getDataAction() == DataAction.DELETE
+         * || configuration.getDataAction() == DataAction.UPDATE) {
+         * throw new IllegalArgumentException(de);
+         * }
+         * DocumentCollection collectionInfo = new DocumentCollection();
+         * collectionInfo.setId(collectionName);
+         * 
+         * // Optionally, you can configure the indexing policy of a
+         * // collection. Here we configure collections for maximum query
+         * // flexibility including string range queries.
+         * RangeIndex index = new RangeIndex(DataType.String);
+         * index.setPrecision(-1);
+         * 
+         * collectionInfo.setIndexingPolicy(new IndexingPolicy(new Index[] { index }));
+         * if (StringUtils.isNotEmpty(configuration.getPartitionKey())) {
+         * PartitionKeyDefinition pkd = new PartitionKeyDefinition();
+         * pkd.setPaths(Arrays.asList(configuration.getPartitionKey().split(",")));
+         * collectionInfo.setPartitionKey(pkd);
+         * }
+         * // DocumentDB collections can be reserved with throughput
+         * // specified in request units/second. 1 RU is a normalized
+         * // request equivalent to the read of a 1KB document. Here we
+         * // create a collection with 400 RU/s.
+         * RequestOptions requestOptions = new RequestOptions();
+         * if (configuration.getOfferThroughput() > 0) {
+         * requestOptions.setOfferThroughput(configuration.getOfferThroughput());
+         * }
+         * 
+         * try {
+         * this.client.createCollection(databaseLink, collectionInfo, requestOptions);
+         * } catch (DocumentClientException e) {
+         * throw new IllegalArgumentException(e);
+         * }
+         * 
+         * log.info(String.format("Created %s", collectionName));
+         * } else {
+         * throw new IllegalArgumentException(de);
+         * }
+         * }
+         */
     }
 
 }
