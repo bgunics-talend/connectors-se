@@ -39,6 +39,8 @@ import javax.json.JsonReader;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Documentation("This component reads data from cosmosDB.")
@@ -56,6 +58,8 @@ public class CosmosDBInput implements Serializable {
 
     private transient Iterator<JsonNode> iterator;
 
+    private boolean returnResultRaw;
+
     public CosmosDBInput(@Option("configuration") final CosmosDBInputConfiguration configuration,
             final CosmosDBService service,
             final RecordBuilderFactory builderFactory) {
@@ -66,6 +70,8 @@ public class CosmosDBInput implements Serializable {
 
     @PostConstruct
     public void init() {
+        this.returnResultRaw = !configuration.getStudioSchema().isEmpty() &&
+                "*".equals(configuration.getStudioSchema().get(0).getOriginalDbColumnName());
         this.jsonToRecord = new JsonToRecord(builderFactory, configuration.isJsonForceDouble());
         client = service.documentClientFrom(configuration.getDataset().getDatastore());
         iterator = getResults(configuration.getDataset().getDatastore().getDatabaseID(),
@@ -76,10 +82,18 @@ public class CosmosDBInput implements Serializable {
     public Record next() {
         if (iterator.hasNext()) {
             JsonNode next = iterator.next();
-            JsonReader reader = Json.createReader(new StringReader(next.toString()));
-            JsonObject jsonObject = reader.readObject();
-            Record record = jsonToRecord.toRecord(jsonObject);
-            return record;
+            if (!returnResultRaw) {
+                JsonReader reader = Json.createReader(new StringReader(next.toString()));
+                JsonObject jsonObject = reader.readObject();
+                Record record = jsonToRecord.toRecord(jsonObject);
+                return record;
+            } else {
+                Record record = builderFactory.newRecordBuilder()
+                        .withString(configuration.getStudioSchema().get(0).getLabel(),
+                                next.toString())
+                        .build();
+                return record;
+            }
         }
         log.info("No more results");
         return null;

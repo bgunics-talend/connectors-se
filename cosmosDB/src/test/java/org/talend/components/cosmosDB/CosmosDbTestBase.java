@@ -228,6 +228,28 @@ public class CosmosDbTestBase {
         return recordEqual(record, jsonObject);
     }
 
+    protected List<Record> createData4(int i) {
+        List records = new ArrayList(i);
+        for (; i > 0; i--) {
+            String json = "{id: \"" + i + "\", lastName: \"firstfirst\", " +
+                    "double: 3.555, long: 7928342, int: 3242342, Date1: \"2022-12-10\", " +
+                    "escape: \"this field has \\\" escapes\" }";
+
+            Record record = recordBuilderFactory
+                    .newRecordBuilder() //
+                    .withString(recordBuilderFactory.newEntryBuilder()
+                            .withType(Schema.Type.STRING)
+                            .withName("doc")
+                            .withRawName("*")
+                            .build(),
+                            json)
+                    .build();
+
+            records.add(record);
+        }
+        return records;
+    }
+
     protected boolean recordEqual(Record record, JsonObject document) {
         Schema schema = record.getSchema();
         List<Schema.Entry> entries = schema.getEntries();

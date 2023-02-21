@@ -19,16 +19,19 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
+import org.talend.sdk.component.api.configuration.ui.widget.Structure;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Version(1)
 @Data
 @GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataset" }), //
 }), @GridLayout(names = GridLayout.FormType.ADVANCED,
         value = { @GridLayout.Row({ "dataset" }),
-                @GridLayout.Row({ "jsonForceDouble" }) }) })
+                @GridLayout.Row({ "jsonForceDouble" }),
+                @GridLayout.Row({ "studioSchema" }) }) })
 @Documentation("cosmosDB input Mapper Configuration")
 public class CosmosDBInputConfiguration implements Serializable {
 
@@ -41,4 +44,8 @@ public class CosmosDBInputConfiguration implements Serializable {
     @Documentation("Force json number to double.")
     private boolean jsonForceDouble = true;
 
+    @Option
+    @Documentation("Incoming metadata of studio.")
+    @Structure(type = Structure.Type.OUT)
+    private List<SchemaInfo> studioSchema;
 }
