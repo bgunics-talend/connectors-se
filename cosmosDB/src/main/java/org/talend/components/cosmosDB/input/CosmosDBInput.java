@@ -70,7 +70,8 @@ public class CosmosDBInput implements Serializable {
 
     @PostConstruct
     public void init() {
-        this.returnResultRaw = !configuration.getStudioSchema().isEmpty() &&
+        this.returnResultRaw = configuration.getStudioSchema() != null &&
+                !configuration.getStudioSchema().isEmpty() &&
                 "*".equals(configuration.getStudioSchema().get(0).getOriginalDbColumnName());
         this.jsonToRecord = new JsonToRecord(builderFactory, configuration.isJsonForceDouble());
         client = service.documentClientFrom(configuration.getDataset().getDatastore());
